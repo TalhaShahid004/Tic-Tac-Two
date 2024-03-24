@@ -126,8 +126,8 @@ class UltimateTicTacToe(CTk):
 
     # check if a small grid is won
     def check_small_grid_win(self, large_row, large_col):
-        small_grid = [button.cget("text") for button, _, _, lr, lc in self.buttons if
-                      lr == large_row and lc == large_col]
+        small_grid = [button.cget("text") for button, i, j, lr, lc in self.buttons if
+                      lr == large_row and lc == large_col and i <= 3 and j <= 3] #this nested for if loop returns all the strings that are contained in each button
         winner = self.check_win(small_grid)
         
         if winner == 'X': #will be used later
@@ -136,6 +136,13 @@ class UltimateTicTacToe(CTk):
             fg = "red"
             
         if winner:
+            for button, i, j, lr, lc in self.buttons:
+                if lr == large_row and lc == large_col:
+                    if i == j == 1:
+                        button.configure(text = winner, fg_color = fg)
+                        continue
+                    button.configure(text = "", fg_color = fg)
+
             self.largeGridWins[large_row][large_col] = winner
 
     # check if the large grid is won
@@ -147,7 +154,8 @@ class UltimateTicTacToe(CTk):
     # check for a win in a grid
     def check_win(self, grid):
         if isinstance(grid[0], list):
-            # grid is a 2D list (large grid)
+            # grid is a 2D list (large grid) #this checks for if the entire board has been completed
+            # for each return we are returning the character that has won
             for i in range(3):
                 if grid[i][0] == grid[i][1] == grid[i][2] != 0:
                     return grid[i][0]
@@ -158,16 +166,16 @@ class UltimateTicTacToe(CTk):
             if grid[0][2] == grid[1][1] == grid[2][0] != 0:
                 return grid[0][2]
         else:
-            # grid is a 1D list (small grid)
+            # grid is a 1D list (small grid) this checks for if the smaller tictactoe games have been completed
             for i in range(0, 9, 3):
-                if grid[i] == grid[i + 1] == grid[i + 2] != "":
+                if grid[i] == grid[i + 1] == grid[i + 2] != "": #checking similarity and if non-null
                     return grid[i]
             for i in range(3):
                 if grid[i] == grid[i + 3] == grid[i + 6] != "":
                     return grid[i]
-            if grid[0] == grid[4] == grid[8] != "":
+            if grid[0] == grid[4] == grid[8] != "": #checking diagonals
                 return grid[0]
-            if grid[2] == grid[4] == grid[6] != "":
+            if grid[2] == grid[4] == grid[6] != "": # checking diagonals
                 return grid[2]
         return None
 
@@ -194,9 +202,7 @@ class UltimateTicTacToe(CTk):
                     self.large_grid_frames[i].configure(fg_color="yellow")
                 else:
                     self.large_grid_frames[i].configure(fg_color="transparent")
-
-
-
+                    
 if __name__ == "__main__":
     set_appearance_mode("dark")
     app = UltimateTicTacToe()
