@@ -85,12 +85,11 @@ class UltimateTicTacToe(CTk):
         self.nextLargeGridRow = small_row
         self.nextLargeGridColumn = small_col
 
-        self.update_large_grid_outline()  # Update the outline of available large grids
-        self.update_turn_label()  # Update the turn label
-
         self.check_small_grid_win(large_row, large_col)
         self.check_large_grid_win()
 
+        self.update_large_grid_outline()  # Update the outline of available large grids
+        self.update_turn_label()  # Update the turn label
     # used for player ticker (X or O)
     def change_button_text(self, button):
         if self.turn % 2 == 0:
@@ -181,10 +180,12 @@ class UltimateTicTacToe(CTk):
                     self.large_grid_frames[i].configure(fg_color="yellow")
                 else:
                     self.large_grid_frames[i].configure(fg_color="transparent")
-            elif i == self.nextLargeGridRow * 3 + self.nextLargeGridColumn:
-                self.large_grid_frames[i].configure(fg_color="yellow")
             else:
-                self.large_grid_frames[i].configure(fg_color="transparent")
+                if row == self.nextLargeGridRow and col == self.nextLargeGridColumn:
+                    self.large_grid_frames[i].configure(fg_color="yellow")
+                else:
+                    self.large_grid_frames[i].configure(fg_color="transparent")
+
 
 
 if __name__ == "__main__":
