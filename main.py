@@ -12,7 +12,10 @@ class UltimateTicTacToe(CTk):
         self.turn = 0
         self.buttons = []  # Store button instances
 
-        self.largeGridWins = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]  # Store the wins of the large grid
+        self.largeGridWins = [[0, 0, 0],
+                              [0, 0, 0],
+                              [0, 0, 0]]  # Store the wins of the large grid
+        
         self.large_grid_frames = []  # Store the frames of the large grid
 
         # Store the next large grid row and column based on the current turn
@@ -93,9 +96,9 @@ class UltimateTicTacToe(CTk):
     # used for player ticker (X or O)
     def change_button_text(self, button):
         if self.turn % 2 == 0:
-            button.configure(text="X")
+            button.configure(text="X", fg_color = "blue")
         else:
-            button.configure(text="O")
+            button.configure(text="O", fg_color = "red")
 
     # check if the button is already used
     def check_button_used(self, button, large_row, large_col):
@@ -126,6 +129,12 @@ class UltimateTicTacToe(CTk):
         small_grid = [button.cget("text") for button, _, _, lr, lc in self.buttons if
                       lr == large_row and lc == large_col]
         winner = self.check_win(small_grid)
+        
+        if winner == 'X': #will be used later
+            fg = "blue"
+        else:
+            fg = "red"
+            
         if winner:
             self.largeGridWins[large_row][large_col] = winner
 
