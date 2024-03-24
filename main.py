@@ -93,14 +93,6 @@ class UltimateTicTacToe(CTk):
 
         self.update_large_grid_outline()  # Update the outline of available large grids
         self.update_turn_label()  # Update the turn label
-    # used for player ticker (X or O)
-    def change_button_text(self, button):
-        if self.turn % 2 == 0:
-            button.configure(text="X", fg_color = "blue")
-        else:
-            button.configure(text="O", fg_color = "red")
-
-    # check if the button is already used
     def check_button_used(self, button, large_row, large_col):
         # Check if the button is already set
         if button.cget("text") != "":
@@ -112,6 +104,13 @@ class UltimateTicTacToe(CTk):
 
         return True
 
+    # check if the button is already used
+    # used for player ticker (X or O)
+    def change_button_text(self, button):
+        if self.turn % 2 == 0:
+            button.configure(text="X", fg_color="#4B7BE5", text_color="#FFFFFF")  # light blue background, white text
+        else:
+            button.configure(text="O", fg_color="#F08080", text_color="#FFFFFF")  # coral background, white text
     # check if the move is valid based on the next large grid coordinates
     def check_button_large_grid(self, large_row, large_col):
         if self.nextLargeGridRow is None or self.nextLargeGridColumn is None:
