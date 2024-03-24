@@ -2,6 +2,15 @@ from customtkinter import *
 from tkinter import messagebox
 
 
+class TicTacToeButton(CTkButton):
+    def __init__(self, master, on_click):
+        super().__init__(master, text="", width=50, height=50, corner_radius=1)
+        self.configure(command=on_click)
+
+    def mark(self, text, color):
+        self.configure(text=text, fg_color=color, text_color="#FFFFFF")
+
+
 class TicTacToeGrid(CTkFrame):
     def __init__(self, master, large_row, large_col, on_button_click):
         super().__init__(master)
@@ -15,9 +24,8 @@ class TicTacToeGrid(CTkFrame):
             self.grid_columnconfigure(r, weight=1)
 
             for c in range(3):
-                button = CTkButton(self, text="", width=50, height=50, corner_radius=1)
+                button = TicTacToeButton(self, lambda b=r, a=c: self.on_button_click(b, a, self.large_row, self.large_col))
                 button.grid(row=r, column=c, sticky="nsew")
-                button.configure(command=lambda b=button, sr=r, sc=c: self.on_button_click(b, sr, sc, self.large_row, self.large_col))
                 self.buttons.append(button)
 
     def check_win(self):
@@ -38,9 +46,126 @@ class TicTacToeGrid(CTkFrame):
         fg = "blue" if winner == 'X' else "red"
         for i, button in enumerate(self.buttons):
             if i == 4:
-                button.configure(text=winner, fg_color=fg)
+                button.mark(winner, fg)
             else:
-                button.configure(text="", fg_color=fg)
+                button.mark("", fg)
+
+
+class LargeGrid(CTkFrame):
+    def __init__(self, master, on_button_click):
+        super().__init__(master, fg_color="transparent")
+        self.grid_frames = []
+        self.wins = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+        for i in range(3):
+            self.grid_rowconfigure(i, weight=1)
+            self.grid_columnconfigure(i, weight=1)
+
+            for j in range(3):
+                outer_frame = CTkFrame(self)
+                outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
+
+                grid_frame = TicTacToeGrid(outer_frame, i, j, on_button_click)
+                grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
+                self.grid_frames.append(outer_frame)
+
+    def check_win(self):
+        for i in range(3):
+            if self.wins[i][0] == self.wins[i][1] == self.wins[i][2] != 0:
+                return self.wins[i][0]
+            if self.wins[0][i] == self.wins[1][i] == self.wins[2][i] != 0:
+                return self.wins[0][i]
+        if self.wins[0][0] == self.wins[1][1] == self.wins[2][2] != 0:
+            return self.wins[0][0]
+        if self.wins[0][2] == self.wins[1][1] == self.wins[2][0] != 0:
+            return self.wins[0][2]
+        return None
+
+    def update_outline(self, next_row, next_col):
+        for i in range(9):
+            row, col = i // 3, i % 3
+            if next_row is None or next_col is None:
+                if self.wins[row][col] == 0:
+                    self.grid_frames[i].configure(fg_color="yellow")
+                else:
+                    self.grid_frames[i].configure(fg_color="transparent")
+            elif self.wins[next_row][next_col] != 0:
+                if self.wins[row][col] == 0:
+                    self.grid_frames[i].configure(fg_color="yellow")
+                else:
+                    self.grid_frames[i].configure(fg_color="transparent")
+            else:
+                if row == next_row and col == next_col:
+                    self.grid_frames[i].configure(fg_color="yellow")
+                else:
+                    self.grid_frames[i].configure(fg_color="transparent")
+
+
+class GameManager:
+    def __init__(self):
+        self.turn = 0
+        self.nextLargeGridRow = None
+        self.nextLargeGridColumn = None
+
+    def check_button_used(self, button, large_row, large_col, large_grid):
+        if button.cget("text") != "":
+            return False
+
+        if large_grid.wins[large_row][large_col] != 0:
+            return False
+
+        return True
+
+    def check_button_large_grid(self, large_row, large_col, large_grid):
+        if self.nextLargeGridRow is None or self.nextLargeGridColumn is None:
+            return True
+
+        if large_grid.wins[self.nextLargeGridRow][self.nextLargeGridColumn] != 0:
+            return large_grid.wins[large_row][large_col] == 0
+
+        return large_row == self.nextLargeGridRow and large_col == self.nextLargeGridColumn
+
+    def change_button_text(self, button):
+        if self.turn % 2 == 0:
+            button.mark("X", "#4B7BE5")
+        else:
+            button.mark("O", "#F08080")
+
+    def check_small_grid_win(self, large_row, large_col, large_grid):
+        grid_frame = large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0]
+        winner = grid_frame.check_win()
+
+        if winner:
+            grid_frame.mark_win(winner)
+            large_grid.wins[large_row][large_col] = winner
+
+    def show_winner(self, winner):
+        messagebox.showinfo("Game Over", f"Player {winner} wins!")
+
+    def update_turn_label(self, label):
+        if self.turn % 2 == 0:
+            label.configure(text="Player X's turn")
+        else:
+            label.configure(text="Player O's turn")
+
+    def on_button_click(self, small_row, small_col, large_row, large_col, button, large_grid, turn_label):
+        if not self.check_button_used(button, large_row, large_col, large_grid) or not self.check_button_large_grid(large_row, large_col, large_grid):
+            return
+
+        self.change_button_text(button)
+        self.turn += 1
+
+        self.nextLargeGridRow = small_row
+        self.nextLargeGridColumn = small_col
+
+        self.check_small_grid_win(large_row, large_col, large_grid)
+        winner = large_grid.check_win()
+        if winner:
+            self.show_winner(winner)
+            return
+
+        large_grid.update_outline(self.nextLargeGridRow, self.nextLargeGridColumn)
+        self.update_turn_label(turn_label)
 
 
 class UltimateTicTacToe(CTk):
@@ -50,128 +175,22 @@ class UltimateTicTacToe(CTk):
         self.minsize(400, 400)
         self.resizable(False, False)
 
-        self.turn = 0
-        self.large_grid_wins = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-        self.large_grid_frames = []
-        self.nextLargeGridRow = None
-        self.nextLargeGridColumn = None
+        self.game_manager = GameManager()
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        self.main_frame = CTkFrame(self, fg_color="transparent")
-        self.main_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
-
         self.turn_label = CTkLabel(self, text="Player X's turn", font=("Arial", 16))
         self.turn_label.grid(row=0, column=0, padx=20, pady=(20, 0))
 
-        for i in range(3):
-            self.main_frame.grid_rowconfigure(i, weight=1)
-            self.main_frame.grid_columnconfigure(i, weight=1)
+        self.large_grid = LargeGrid(self, self.on_button_click)
+        self.large_grid.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
 
-            for j in range(3):
-                outer_frame = CTkFrame(self.main_frame)
-                outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
+        self.large_grid.update_outline(None, None)
 
-                grid_frame = TicTacToeGrid(outer_frame, i, j, self.on_button_click)
-                grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
-                self.large_grid_frames.append(outer_frame)
-
-        self.update_large_grid_outline()
-
-    def on_button_click(self, button, small_row, small_col, large_row, large_col):
-        if not self.check_button_used(button, large_row, large_col) or not self.check_button_large_grid(large_row, large_col):
-            return
-
-        self.change_button_text(button)
-        self.turn += 1
-
-        self.nextLargeGridRow = small_row
-        self.nextLargeGridColumn = small_col
-
-        self.check_small_grid_win(large_row, large_col)
-        self.check_large_grid_win()
-
-        self.update_large_grid_outline()
-        self.update_turn_label()
-
-    def check_button_used(self, button, large_row, large_col):
-        if button.cget("text") != "":
-            return False
-
-        if self.large_grid_wins[large_row][large_col] != 0:
-            return False
-
-        return True
-
-    def change_button_text(self, button):
-        if self.turn % 2 == 0:
-            button.configure(text="X", fg_color="#4B7BE5", text_color="#FFFFFF")
-        else:
-            button.configure(text="O", fg_color="#F08080", text_color="#FFFFFF")
-
-    def check_button_large_grid(self, large_row, large_col):
-        if self.nextLargeGridRow is None or self.nextLargeGridColumn is None:
-            return True
-
-        if self.large_grid_wins[self.nextLargeGridRow][self.nextLargeGridColumn] != 0:
-            return self.large_grid_wins[large_row][large_col] == 0
-
-        return large_row == self.nextLargeGridRow and large_col == self.nextLargeGridColumn
-
-    def check_small_grid_win(self, large_row, large_col):
-        grid_frame = self.main_frame.grid_slaves(row=large_row, column=large_col)[0].winfo_children()[0]
-        winner = grid_frame.check_win()
-
-        if winner:
-            grid_frame.mark_win(winner)
-            self.large_grid_wins[large_row][large_col] = winner
-
-    def check_large_grid_win(self):
-        winner = self.check_win(self.large_grid_wins)
-        if winner:
-            self.show_winner(winner)
-
-    def check_win(self, grid):
-        for i in range(3):
-            if grid[i][0] == grid[i][1] == grid[i][2] != 0:
-                return grid[i][0]
-            if grid[0][i] == grid[1][i] == grid[2][i] != 0:
-                return grid[0][i]
-        if grid[0][0] == grid[1][1] == grid[2][2] != 0:
-            return grid[0][0]
-        if grid[0][2] == grid[1][1] == grid[2][0] != 0:
-            return grid[0][2]
-        return None
-
-    def show_winner(self, winner):
-        messagebox.showinfo("Game Over", f"Player {winner} wins!")
-        self.quit()
-
-    def update_turn_label(self):
-        if self.turn % 2 == 0:
-            self.turn_label.configure(text="Player X's turn")
-        else:
-            self.turn_label.configure(text="Player O's turn")
-
-    def update_large_grid_outline(self):
-        for i in range(9):
-            row, col = i // 3, i % 3
-            if self.nextLargeGridRow is None or self.nextLargeGridColumn is None:
-                if self.large_grid_wins[row][col] == 0:
-                    self.large_grid_frames[i].configure(fg_color="yellow")
-                else:
-                    self.large_grid_frames[i].configure(fg_color="transparent")
-            elif self.large_grid_wins[self.nextLargeGridRow][self.nextLargeGridColumn] != 0:
-                if self.large_grid_wins[row][col] == 0:
-                    self.large_grid_frames[i].configure(fg_color="yellow")
-                else:
-                    self.large_grid_frames[i].configure(fg_color="transparent")
-            else:
-                if row == self.nextLargeGridRow and col == self.nextLargeGridColumn:
-                    self.large_grid_frames[i].configure(fg_color="yellow")
-                else:
-                    self.large_grid_frames[i].configure(fg_color="transparent")
+    def on_button_click(self, small_row, small_col, large_row, large_col):
+        button = self.large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0].buttons[small_row * 3 + small_col]
+        self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid, self.turn_label)
 
 
 if __name__ == "__main__":
