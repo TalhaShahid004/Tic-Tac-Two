@@ -3,28 +3,28 @@ from tkinter import messagebox
 
 
 class TicTacToeButton(CTkButton):
-    def __init__(self, master, on_click):
-        super().__init__(master, text="", width=50, height=50, corner_radius=1)
+    def __init__(self, master, on_click): # constructor
+        super().__init__(master, text="", width=50, height=50, corner_radius=1) # super constructor for CTkButton
         self.configure(command=on_click)
 
-    def mark(self, text, color):
+    def mark(self, text, color): # method for coloring and marking the button and being written on
         self.configure(text=text, fg_color=color, text_color="#FFFFFF")
 
 
-class TicTacToeGrid(CTkFrame):
-    def __init__(self, master, large_row, large_col, on_button_click):
+class TicTacToeGrid(CTkFrame): 
+    def __init__(self, master, large_row, large_col, on_button_click): # main window constructor
         super().__init__(master)
-        self.buttons = []
-        self.on_button_click = on_button_click
-        self.large_row = large_row
-        self.large_col = large_col
+        self.buttons = [] # list of all buttons available
+        self.on_button_click = on_button_click # assigning local variable to field for button click method
+        self.large_row = large_row # large row is the total number of rows in the Large tictactoe board (3)
+        self.large_col = large_col # large row is the total number of cols in the Large tictactoe board (3)
 
         for r in range(3):
-            self.grid_rowconfigure(r, weight=1)
+            self.grid_rowconfigure(r, weight=1) # customtkinter method to assigning a slot to put the button in, weight is the size of the gap
             self.grid_columnconfigure(r, weight=1)
 
             for c in range(3):
-                button = TicTacToeButton(self, lambda b=r, a=c: self.on_button_click(b, a, self.large_row, self.large_col))
+                button = TicTacToeButton(self, lambda b=r, a=c: self.on_button_click(b, a, self.large_row, self.large_col)) 
                 button.grid(row=r, column=c, sticky="nsew")
                 self.buttons.append(button)
 
@@ -55,7 +55,9 @@ class LargeGrid(CTkFrame):
     def __init__(self, master, on_button_click):
         super().__init__(master, fg_color="transparent")
         self.grid_frames = []
-        self.wins = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.wins = [[0, 0, 0], 
+                     [0, 0, 0], 
+                     [0, 0, 0]]
 
         for i in range(3):
             self.grid_rowconfigure(i, weight=1)
