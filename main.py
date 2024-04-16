@@ -1,48 +1,83 @@
-from customtkinter import *
 from tkinter import messagebox
+from customtkinter import *
 
+# Button class
 
-class TicTacToeButton(CTkButton):
-    def __init__(self, master, on_click): # constructor
-        super().__init__(master, text="", width=50, height=50, corner_radius=1) # super constructor for CTkButton
+class Button(CTkButton):
+    #default constructor
+    def __init__(self, master, on_click):
+        super().__init__(master, text="", width=50, height=50, corner_radius=1)  # dimensions
+        # adds the on_click method to the button
         self.configure(command=on_click)
 
-    def mark(self, text, color): # method for coloring and marking the button and being written on
+    def mark(self, text, color):  # method for coloring and marking the button and being written on
         self.configure(text=text, fg_color=color, text_color="#FFFFFF")
 
 
-class TicTacToeGrid(CTkFrame): 
-    def __init__(self, master, large_row, large_col, on_button_click): # main window constructor
+# Small 3x3 Grid class
+class smallGrid(CTkFrame):
+    # default constructor
+    def __init__(self, master, large_row, large_col, on_button_click):
+        # calls the constructor of the parent class
         super().__init__(master)
-        self.buttons = [] # list of all buttons available
-        self.on_button_click = on_button_click # assigning local variable to field for button click method
-        self.large_row = large_row # large row is the total number of rows in the Large tictactoe board (3)
-        self.large_col = large_col # large row is the total number of cols in the Large tictactoe board (3)
+
+        # create a variable that shows if the small grid is won or not
+        self.won = False
+        self.buttons = []
+        self.on_button_click = on_button_click
+        self.large_row = large_row
+        self.large_col = large_col
 
         for r in range(3):
             self.grid_rowconfigure(r, weight=1) # customtkinter method to assigning a slot to put the button in, weight is the size of the gap
             self.grid_columnconfigure(r, weight=1)
 
             for c in range(3):
-                button = TicTacToeButton(self, lambda b=r, a=c: self.on_button_click(b, a, self.large_row, self.large_col)) 
+                # create a button with lambda function to pass the row and column of the button
+                button = Button(self, lambda b=r, a=c: self.on_button_click(b, a, self.large_row, self.large_col))
                 button.grid(row=r, column=c, sticky="nsew")
                 self.buttons.append(button)
 
-    def check_win(self):
+    def check_small_grid_win(self):
+        # set grid as a list of the text of the buttons
         grid = [button.cget("text") for button in self.buttons]
+        # Check if there is a win condition
+
         for i in range(0, 9, 3):
+            # Check rows
+            # If the elements at indices i, i+1, and i+2 are the same (excluding empty cells),
+            # there is a win condition in that row
             if grid[i] == grid[i + 1] == grid[i + 2] != "":
+                self.won = True
                 return grid[i]
+
         for i in range(3):
+            # Check columns
+            # If the elements at indices i, i+3, and i+6 are the same (excluding empty cells),
+            # there is a win condition in that column
             if grid[i] == grid[i + 3] == grid[i + 6] != "":
+                self.won = True
                 return grid[i]
+
+        # Check diagonal from top-left to bottom-right
+        # If the elements at indices 0, 4, and 8 are the same (excluding empty cells),
+        # there is a win condition in that diagonal
         if grid[0] == grid[4] == grid[8] != "":
+            self.won = True
             return grid[0]
+
+        # Check diagonal from top-right to bottom-left
+        # If the elements at indices 2, 4, and 6 are the same (excluding empty cells),
+        # there is a win condition in that diagonal
         if grid[2] == grid[4] == grid[6] != "":
+            self.won = True
             return grid[2]
+
+        # If no win condition is found, return None
         return None
 
-    def mark_win(self, winner):
+    # Method to mark the small grid as won
+    def mark_small_grid_win(self, winner):
         fg = "blue" if winner == 'X' else "red"
         for i, button in enumerate(self.buttons):
             if i == 4:
@@ -50,15 +85,21 @@ class TicTacToeGrid(CTkFrame):
             else:
                 button.mark("", fg)
 
+    def get_small_grid_won(self):
+        return self.won
 
+
+# Large 3x3 Grid class
 class LargeGrid(CTkFrame):
-    def __init__(self, master, on_button_click):
+    def __init__(self,master, on_button_click):
         super().__init__(master, fg_color="transparent")
         self.grid_frames = []
-        self.wins = [[0, 0, 0], 
-                     [0, 0, 0], 
+        # create a variable that shows if the large grid is won or not
+        self.wins = [[0, 0, 0],
+                     [0, 0, 0],
                      [0, 0, 0]]
 
+        # create a 3x3 grid of small grids
         for i in range(3):
             self.grid_rowconfigure(i, weight=1)
             self.grid_columnconfigure(i, weight=1)
@@ -67,48 +108,85 @@ class LargeGrid(CTkFrame):
                 outer_frame = CTkFrame(self)
                 outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
 
-                grid_frame = TicTacToeGrid(outer_frame, i, j, on_button_click)
+                grid_frame = smallGrid(outer_frame, i, j, on_button_click)
                 grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
                 self.grid_frames.append(outer_frame)
 
-    def check_win(self):
+    def check_large_grid_win(self):
         for i in range(3):
+            # Check rows
+            # If the elements in the i-th row (self.wins[i][0], self.wins[i][1], self.wins[i][2])
+            # are the same and not equal to 0, there is a win condition in that row
             if self.wins[i][0] == self.wins[i][1] == self.wins[i][2] != 0:
                 return self.wins[i][0]
+
+            # Check columns
+            # If the elements in the i-th column (self.wins[0][i], self.wins[1][i], self.wins[2][i])
+            # are the same and not equal to 0, there is a win condition in that column
             if self.wins[0][i] == self.wins[1][i] == self.wins[2][i] != 0:
                 return self.wins[0][i]
+
+        # Check diagonal from top-left to bottom-right
+        # If the elements in the diagonal (self.wins[0][0], self.wins[1][1], self.wins[2][2])
+        # are the same and not equal to 0, there is a win condition in that diagonal
         if self.wins[0][0] == self.wins[1][1] == self.wins[2][2] != 0:
             return self.wins[0][0]
+
+        # Check diagonal from top-right to bottom-left
+        # If the elements in the diagonal (self.wins[0][2], self.wins[1][1], self.wins[2][0])
+        # are the same and not equal to 0, there is a win condition in that diagonal
         if self.wins[0][2] == self.wins[1][1] == self.wins[2][0] != 0:
             return self.wins[0][2]
+
+        # If no win condition is found, return None
         return None
 
+    # marks open cells and yellow
     def update_outline(self, next_row, next_col):
+        # Iterate over each small grid in the large grid
         for i in range(9):
+            # Calculate the row and column of the current small grid
             row, col = i // 3, i % 3
+
+            # Check if the next move is not specified (i.e., next_row and next_col are None)
             if next_row is None or next_col is None:
+                # If the current small grid is not won, highlight it in yellow
                 if self.wins[row][col] == 0:
                     self.grid_frames[i].configure(fg_color="yellow")
                 else:
+                    # If the current small grid is already won, make it transparent
                     self.grid_frames[i].configure(fg_color="transparent")
+
+            # Check if the next move is in a small grid that is already won
             elif self.wins[next_row][next_col] != 0:
+                # If the current small grid is not won, highlight it in yellow
                 if self.wins[row][col] == 0:
                     self.grid_frames[i].configure(fg_color="yellow")
                 else:
+                    # If the current small grid is already won, make it transparent
                     self.grid_frames[i].configure(fg_color="transparent")
+
+            # If the next move is in a valid small grid
             else:
+                # If the current small grid matches the next move's row and column, highlight it in yellow
                 if row == next_row and col == next_col:
                     self.grid_frames[i].configure(fg_color="yellow")
                 else:
+                    # If the current small grid does not match the next move, make it transparent
                     self.grid_frames[i].configure(fg_color="transparent")
 
 
+
+
+
+# Game logic class
 class GameManager:
     def __init__(self):
         self.turn = 0
         self.nextLargeGridRow = None
-        self.nextLargeGridColumn = None
+        self.nextLargeGridCol = None
 
+    # check if the button is already used
     def check_button_used(self, button, large_row, large_col, large_grid):
         if button.cget("text") != "":
             return False
@@ -118,6 +196,7 @@ class GameManager:
 
         return True
 
+    # check if the button is in the correct grid
     def check_button_large_grid(self, large_row, large_col, large_grid):
         if self.nextLargeGridRow is None or self.nextLargeGridColumn is None:
             return True
@@ -127,18 +206,24 @@ class GameManager:
 
         return large_row == self.nextLargeGridRow and large_col == self.nextLargeGridColumn
 
+    # method to change the button text
     def change_button_text(self, button):
         if self.turn % 2 == 0:
             button.mark("X", "#4B7BE5")
         else:
             button.mark("O", "#F08080")
 
+    # method to check if there is a win on the small grid
     def check_small_grid_win(self, large_row, large_col, large_grid):
+        # Get the small grid that the button belongs to
         grid_frame = large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0]
-        winner = grid_frame.check_win()
 
+        # Check if there is a win condition in the small grid
+        winner = grid_frame.check_small_grid_win()
+
+        # If there is a win condition, mark the small grid as won
         if winner:
-            grid_frame.mark_win(winner)
+            grid_frame.mark_small_grid_win(winner)
             large_grid.wins[large_row][large_col] = winner
 
     def show_winner(self, winner):
@@ -150,8 +235,10 @@ class GameManager:
         else:
             label.configure(text="Player O's turn")
 
+
     def on_button_click(self, small_row, small_col, large_row, large_col, button, large_grid, turn_label):
-        if not self.check_button_used(button, large_row, large_col, large_grid) or not self.check_button_large_grid(large_row, large_col, large_grid):
+        if not self.check_button_used(button, large_row, large_col, large_grid) or not self.check_button_large_grid(
+                large_row, large_col, large_grid):
             return
 
         self.change_button_text(button)
@@ -161,7 +248,7 @@ class GameManager:
         self.nextLargeGridColumn = small_col
 
         self.check_small_grid_win(large_row, large_col, large_grid)
-        winner = large_grid.check_win()
+        winner = large_grid.check_large_grid_win()
         if winner:
             self.show_winner(winner)
             return
@@ -169,7 +256,7 @@ class GameManager:
         large_grid.update_outline(self.nextLargeGridRow, self.nextLargeGridColumn)
         self.update_turn_label(turn_label)
 
-
+# UI and Game class
 class UltimateTicTacToe(CTk):
     def __init__(self):
         super().__init__()
@@ -191,8 +278,10 @@ class UltimateTicTacToe(CTk):
         self.large_grid.update_outline(None, None)
 
     def on_button_click(self, small_row, small_col, large_row, large_col):
-        button = self.large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0].buttons[small_row * 3 + small_col]
-        self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid, self.turn_label)
+        button = self.large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0].buttons[
+            small_row * 3 + small_col]
+        self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid,
+                                          self.turn_label)
 
 
 if __name__ == "__main__":
