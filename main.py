@@ -256,6 +256,22 @@ class GameManager:
         large_grid.update_outline(self.nextLargeGridRow, self.nextLargeGridColumn)
         self.update_turn_label(turn_label)
 
+    # method to get the state space of the game
+    def get_state_space(self, large_grid):
+        state_space = {
+            'turn': 'X' if self.turn % 2 == 0 else 'O',
+            'next_large_grid': (self.nextLargeGridRow, self.nextLargeGridCol),
+            'small_grids': [],
+            'large_grid': large_grid.wins
+        }
+
+        for i in range(9):
+            small_grid = large_grid.grid_frames[i].winfo_children()[0]
+            buttons_state = [button.cget("text") for button in small_grid.buttons]
+            state_space['small_grids'].append(buttons_state)
+
+        return state_space
+
 # UI and Game class
 class UltimateTicTacToe(CTk):
     def __init__(self):
@@ -283,6 +299,10 @@ class UltimateTicTacToe(CTk):
         self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid,
                                           self.turn_label)
 
+        # Access the state space after each button click
+        state_space = self.game_manager.get_state_space(self.large_grid)
+        print("Current State Space:")
+        print(state_space)
 
 if __name__ == "__main__":
     set_appearance_mode("dark")
