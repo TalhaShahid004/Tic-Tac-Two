@@ -273,56 +273,47 @@ class GameManager:
         return state_space
     
 class AIAgent:
-    def __init__(self, player):
-        self.max_depth = 1  # can be changed
-        self.player = player
+    def __init__(self):
+        self.max_depth = 1 # can be changed
 
     # this is the function that will actually be called
     def get_next_move(self, state_space):
-        # call minimax function
-        _, move = self.minimax(state_space, self.max_depth, float('-inf'), float('inf'), self.player)
-        return move
+        # call minimax function 
+        return self.minimax(state_space, self.max_depth, float('-inf'), float('inf'), True)
 
     def minimax(self, state_space, depth, alpha, beta, player):
         # terminal conditions
         # if the game is over, ie x or o wins or tie, return the score
         if self.is_game_over(state_space):
-            return self.evaluate_state_space(state_space, player), None
+            return self.evaluate_state_space(state_space, player)
         # if the depth is 0, return the score
         if depth == 0:
-            return self.evaluate_state_space(state_space, player), None
+            return self.evaluate_state_space(state_space, player)
 
         # if the current player is maximizing
         # ai player logic
-        if player == self.player:
+        if(player == 'X'):
             best_score = float('-inf')
-            best_move = None
-            for move in self.generate_possible_moves(state_space, player):
-                new_state_space = self.make_move(state_space, move, player)
-                score, _ = self.minimax(new_state_space, depth - 1, alpha, beta, 'O' if player == 'X' else 'X')
-                if score > best_score:
-                    best_score = score
-                    best_move = move
-                alpha = max(alpha, best_score)
+            for move in self.generate_possible_moves(state_space):
+                new_state_space = self.make_move(state_space, move, 'X')
+                score = self.minimax(new_state_space, depth - 1, alpha, beta, 'O')
+                best_score = max(best_score, score)
+                alpha = max(alpha, score)
                 if beta <= alpha:
                     break
-            return best_score, best_move
+            return best_score
         else:
-            # if the current player is minimizing
-            # human player logic
+        # if the current player is minimizing
+        # human player logic
             best_score = float('inf')
-            best_move = None
-            for move in self.generate_possible_moves(state_space, player):
-                new_state_space = self.make_move(state_space, move, player)
-                score, _ = self.minimax(new_state_space, depth - 1, alpha, beta, 'X' if player == 'O' else 'O')
-                if score < best_score:
-                    best_score = score
-                    best_move = move
-                beta = min(beta, best_score)
+            for move in self.generate_possible_moves(state_space):
+                new_state_space = self.make_move(state_space, move, 'O')
+                score = self.minimax(new_state_space, depth - 1, alpha, beta, 'X')
+                best_score = min(best_score, score)
+                beta = min(beta, score)
                 if beta <= alpha:
                     break
-            return best_score, best_move
-
+            return best_score
         
 
 
@@ -351,22 +342,16 @@ class AIAgent:
         return possible_moves
 
     # method to actually make the move
-    def make_move(self, state_space, move, player):
-        new_state_space = state_space.copy()
+    def make_move(self, state_space, move):
+        new_state_space = state_space
         # get the moves details
         large_row, large_col, small_row, small_col = move
 
         # update the state space
-        new_state_space['small_grids'][large_row * 3 + large_col][small_row * 3 + small_col] = player
-
-        # update the next large grid
-        new_state_space['next_large_grid'] = (small_row, small_col)
-
-        # update the turn
-        new_state_space['turn'] = 'O' if player == 'X' else 'X'
+        new_state_space['small_grids'][large_row * 3 + large_col][small_row * 3 + small_col] = state_space['turn']
 
         return new_state_space
-    
+
     def is_game_over(self, state_space):
         # Check if the game is over based on the current state space
         # Return True if the game is over, False otherwise
@@ -466,14 +451,13 @@ class AIAgent:
 
 # UI and Game class
 class UltimateTicTacToe(CTk):
-    def __init__(self, ai_player=None):
+    def __init__(self):
         super().__init__()
         self.title("Ultimate Tic Tac Toe")
         self.minsize(400, 400)
         self.resizable(False, False)
 
         self.game_manager = GameManager()
-        self.ai_player = ai_player
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -497,21 +481,7 @@ class UltimateTicTacToe(CTk):
         print("Current State Space:")
         print(state_space)
 
-        # Check if it's the AI player's turn
-        if self.ai_player is not None and self.game_manager.turn % 2 == (1 if self.ai_player.player == 'O' else 0):
-            # Get the AI agent's move
-            ai_move = self.ai_player.get_next_move(state_space)
-
-            # Perform the AI agent's move
-            if ai_move is not None:
-                large_row, large_col, small_row, small_col = ai_move
-                button = self.large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0].buttons[
-                    small_row * 3 + small_col]
-                self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid,
-                                                  self.turn_label)
-
 if __name__ == "__main__":
     set_appearance_mode("dark")
-    ai_player = AIAgent('O')  # Create an instance of the AIAgent, specifying the player ('X' or 'O')
-    app = UltimateTicTacToe(ai_player=ai_player)
+    app = UltimateTicTacToe()
     app.mainloop()
