@@ -260,7 +260,7 @@ class GameManager:
     def get_state_space(self, large_grid):
         state_space = {
             'turn': 'X' if self.turn % 2 == 0 else 'O',
-            'next_large_grid': (self.nextLargeGridRow, self.nextLargeGridCol),
+            'next_large_grid': (self.nextLargeGridRow, self.nextLargeGridColumn),  
             'small_grids': [],
             'large_grid': large_grid.wins
         }
@@ -271,6 +271,49 @@ class GameManager:
             state_space['small_grids'].append(buttons_state)
 
         return state_space
+class AIAgent:
+    def __init__(self, player):
+        self.player = player
+        self.max_depth = 1 # can be changed
+
+    def get_next_move(self, state_space):
+        pass
+
+    def minimax(self, state_space, depth, alpha, beta, is_maximizing):
+
+
+        pass
+    def generate_possible_moves(self, state_space):
+        # Generate a list of possible moves based on the current state space
+        possible_moves = []
+
+        # based on the game rules and current state space
+
+        return possible_moves
+
+    def make_move(self, state_space, move):
+        new_state_space = state_space
+
+        # based on the game rules and update the necessary attributes
+
+        return new_state_space
+
+    def is_game_over(self, state_space):
+        # Check if the game is over based on the current state space
+
+        return False
+
+    def evaluate_state_space(self, state_space):
+        # Evaluate the state space and return a score
+        # based on the current position of the AI agent
+
+        score = 0
+
+        # Implement the evaluation function here
+        # You can consider factors such as the number of small grids won,
+        # potential winning patterns, and any other relevant heuristics
+
+        return score
 
 # UI and Game class
 class UltimateTicTacToe(CTk):
