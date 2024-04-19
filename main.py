@@ -271,47 +271,181 @@ class GameManager:
             state_space['small_grids'].append(buttons_state)
 
         return state_space
+    
 class AIAgent:
-    def __init__(self, player):
-        self.player = player
+    def __init__(self):
         self.max_depth = 1 # can be changed
 
+    # this is the function that will actually be called
     def get_next_move(self, state_space):
-        pass
+        # call minimax function 
+        return self.minimax(state_space, self.max_depth, float('-inf'), float('inf'), True)
 
-    def minimax(self, state_space, depth, alpha, beta, is_maximizing):
+    def minimax(self, state_space, depth, alpha, beta, player):
+        # terminal conditions
+        # if the game is over, ie x or o wins or tie, return the score
+        if self.is_game_over(state_space):
+            return self.evaluate_state_space(state_space, player)
+        # if the depth is 0, return the score
+        if depth == 0:
+            return self.evaluate_state_space(state_space, player)
+
+        # if the current player is maximizing
+        # ai player logic
+        if(player == 'X'):
+            best_score = float('-inf')
+            for move in self.generate_possible_moves(state_space):
+                new_state_space = self.make_move(state_space, move, 'X')
+                score = self.minimax(new_state_space, depth - 1, alpha, beta, 'O')
+                best_score = max(best_score, score)
+                alpha = max(alpha, score)
+                if beta <= alpha:
+                    break
+            return best_score
+        else:
+        # if the current player is minimizing
+        # human player logic
+            best_score = float('inf')
+            for move in self.generate_possible_moves(state_space):
+                new_state_space = self.make_move(state_space, move, 'O')
+                score = self.minimax(new_state_space, depth - 1, alpha, beta, 'X')
+                best_score = min(best_score, score)
+                beta = min(beta, score)
+                if beta <= alpha:
+                    break
+            return best_score
+        
 
 
-        pass
-    def generate_possible_moves(self, state_space):
-        # Generate a list of possible moves based on the current state space
+        
+    def generate_possible_moves(self, state_space, player):
         possible_moves = []
 
-        # based on the game rules and current state space
+        next_large_grid_row, next_large_grid_col = state_space['next_large_grid']
+        if next_large_grid_row is None or next_large_grid_col is None:
+            # whole large grid is open for playing
+            for large_row in range(3):
+                for large_col in range(3):
+                    # make sure the large grid isnt won
+                    if state_space['large_grid'][large_row][large_col] == 0:
+                        for small_row in range(3):
+                            for small_col in range(3):
+                                if state_space['small_grids'][large_row * 3 + large_col][small_row * 3 + small_col] == '':
+                                    possible_moves.append((large_row, large_col, small_row, small_col))
+        else:
+            # if the next large grid is specified, only that one can be played
+            for small_row in range(3):
+                for small_col in range(3):
+                    if state_space['small_grids'][next_large_grid_row * 3 + next_large_grid_col][small_row * 3 + small_col] == '':
+                        possible_moves.append((next_large_grid_row, next_large_grid_col, small_row, small_col))
 
         return possible_moves
 
+    # method to actually make the move
     def make_move(self, state_space, move):
         new_state_space = state_space
+        # get the moves details
+        large_row, large_col, small_row, small_col = move
 
-        # based on the game rules and update the necessary attributes
+        # update the state space
+        new_state_space['small_grids'][large_row * 3 + large_col][small_row * 3 + small_col] = state_space['turn']
 
         return new_state_space
 
     def is_game_over(self, state_space):
         # Check if the game is over based on the current state space
+        # Return True if the game is over, False otherwise
+
+        # Check if the large grid is won as a tic tac toe board
+        for i in range(3):
+            # Check rows
+            if state_space['large_grid'][i][0] == state_space['large_grid'][i][1] == state_space['large_grid'][i][2] != 0:
+                return True
+
+            # Check columns
+            if state_space['large_grid'][0][i] == state_space['large_grid'][1][i] == state_space['large_grid'][2][i] != 0:
+                return True
+        
+        # Check diagonal from top-left to bottom-right
+        if state_space['large_grid'][0][0] == state_space['large_grid'][1][1] == state_space['large_grid'][2][2] != 0:
+            return True
+        
+        # Check diagonal from top-right to bottom-left
+        if state_space['large_grid'][0][2] == state_space['large_grid'][1][1] == state_space['large_grid'][2][0] != 0:
+            return True
+        
+            
+
 
         return False
 
-    def evaluate_state_space(self, state_space):
-        # Evaluate the state space and return a score
-        # based on the current position of the AI agent
-
+    def evaluate_state_space(self, state_space, player):
         score = 0
 
-        # Implement the evaluation function here
-        # You can consider factors such as the number of small grids won,
-        # potential winning patterns, and any other relevant heuristics
+        # Evaluate the small grids
+        for large_row in range(3):
+            for large_col in range(3):
+                small_grid = state_space['small_grids'][large_row * 3 + large_col]
+
+                # Check for winning conditions in the small grid
+                for i in range(3):
+                    # Check rows
+                    if small_grid[i * 3] == small_grid[i * 3 + 1] == small_grid[i * 3 + 2]:
+                        if small_grid[i * 3] == player:
+                            score += 10
+                        elif small_grid[i * 3] != '':
+                            score -= 10
+
+                    # Check columns
+                    if small_grid[i] == small_grid[i + 3] == small_grid[i + 6]:
+                        if small_grid[i] == player:
+                            score += 10
+                        elif small_grid[i] != '':
+                            score -= 10
+
+                # Check diagonal from top-left to bottom-right
+                if small_grid[0] == small_grid[4] == small_grid[8]:
+                    if small_grid[0] == player:
+                        score += 10
+                    elif small_grid[0] != '':
+                        score -= 10
+
+                # Check diagonal from top-right to bottom-left
+                if small_grid[2] == small_grid[4] == small_grid[6]:
+                    if small_grid[2] == player:
+                        score += 10
+                    elif small_grid[2] != '':
+                        score -= 10
+
+        # Evaluate the large grid
+        for i in range(3):
+            # Check rows
+            if state_space['large_grid'][i][0] == state_space['large_grid'][i][1] == state_space['large_grid'][i][2]:
+                if state_space['large_grid'][i][0] == player:
+                    score += 100
+                elif state_space['large_grid'][i][0] != 0:
+                    score -= 100
+
+            # Check columns
+            if state_space['large_grid'][0][i] == state_space['large_grid'][1][i] == state_space['large_grid'][2][i]:
+                if state_space['large_grid'][0][i] == player:
+                    score += 100
+                elif state_space['large_grid'][0][i] != 0:
+                    score -= 100
+
+        # Check diagonal from top-left to bottom-right
+        if state_space['large_grid'][0][0] == state_space['large_grid'][1][1] == state_space['large_grid'][2][2]:
+            if state_space['large_grid'][0][0] == player:
+                score += 100
+            elif state_space['large_grid'][0][0] != 0:
+                score -= 100
+
+        # Check diagonal from top-right to bottom-left
+        if state_space['large_grid'][0][2] == state_space['large_grid'][1][1] == state_space['large_grid'][2][0]:
+            if state_space['large_grid'][0][2] == player:
+                score += 100
+            elif state_space['large_grid'][0][2] != 0:
+                score -= 100
 
         return score
 
