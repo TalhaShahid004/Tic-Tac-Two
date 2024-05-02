@@ -112,7 +112,7 @@ def check_large_grid_win_state():
     # if no one has won and there is no tie
     return None
 
-def get_large_grid_input():
+def get_large_grid_input(exclude_grids=None):
     while True:
         # input validation for large grid row
         while True:
@@ -133,11 +133,12 @@ def get_large_grid_input():
         # map the large grid row and column to an index 0-8
         selected_grid = 3 * (int(largeGridRow) - 1) + (int(largeGridColumn) - 1)
         
-        # if the grid is not won
-        if large_grid_state[selected_grid] == None:
+        # if the grid is not won and not excluded
+        if large_grid_state[selected_grid] == None and (exclude_grids is None or selected_grid not in exclude_grids):
             return selected_grid
         else:
-            print("The selected large grid is already won. Please choose another one.")
+            print("The selected large grid is already won or not available. Please choose another one.")
+
 
 def get_small_grid_input(selected_grid):
     while True:
@@ -201,88 +202,58 @@ human2 = "O"
 # large_grid_state[0] = "X"
 
 
+# game logic
+
+# userinput
+won_or_tie = False
+player_won_or_tie = None
+next_large_grid = None  
+large_grid_state = [None for i in range(9)] # None means no one has won
+turn = 0
+
+printGameState()
+
+human1 = "X"
+human2 = "O"
+
 while not won_or_tie:
     if turn % 2 == 0:
-        # human 1 turn
-        print("Player 1's turn")
-
-        # if the next large grid is not set or the next large grid is already won, ask for the large grid input
-        while next_large_grid == None or large_grid_state[next_large_grid] != None:
-            selected_grid = get_large_grid_input()
-            if large_grid_state[selected_grid] == None:
-                next_large_grid = selected_grid
-                break
-            else:
-                print("The selected large grid is already won. Please choose another one.")
-
-        # user input for the small grid
-        small_grid_index = get_small_grid_input(next_large_grid)
-        
-        # If the selected large grid is already won, prompt for another large grid
-        while small_grid_index == None:
-            next_large_grid = get_large_grid_input()
-            small_grid_index = get_small_grid_input(next_large_grid)
-
-        game_state[next_large_grid][small_grid_index] = human1
-
-        next_large_grid = small_grid_index
-
-        printGameState()
-        small_grid_win = check_small_grid_win_state(next_large_grid)
-        # if the small grid is won, update the large grid state
-        if small_grid_win != None:
-            large_grid_state[next_large_grid] = small_grid_win
-            printGameState()
-            print("Large Grid State:", large_grid_state)
-            
-            # Check if the large grid is won after updating the large grid state
-            large_grid_win = check_large_grid_win_state()
-            if large_grid_win != None:
-                won_or_tie = True
-                player_won_or_tie = large_grid_win
-                break
+        print("Player 1's turn (X)")
+        player = human1
     else:
-        # human 2 turn
-        print("Player 2's turn")
-
-        # if the next large grid is not set or the next large grid is already won, ask for the large grid input
-        while next_large_grid == None or large_grid_state[next_large_grid] != None:
-            selected_grid = get_large_grid_input()
-            if large_grid_state[selected_grid] == None:
-                next_large_grid = selected_grid
-                break
-            else:
-                print("The selected large grid is already won. Please choose another one.")
-
-        small_grid_index = get_small_grid_input(next_large_grid)
-        
-        # If the selected large grid is already won, prompt for another large grid
-        while small_grid_index == None:
-            next_large_grid = get_large_grid_input()
-            small_grid_index = get_small_grid_input(next_large_grid)
-
-        game_state[next_large_grid][small_grid_index] = human2
-
-        next_large_grid = small_grid_index
-        printGameState()
-        small_grid_win = check_small_grid_win_state(next_large_grid)
-        # if the small grid is won, update the large grid state
-        if small_grid_win != None:
-            large_grid_state[next_large_grid] = small_grid_win
-            printGameState()
-            print("Large Grid State:", large_grid_state)
-            
-            # Check if the large grid is won after updating the large grid state
-            large_grid_win = check_large_grid_win_state()
-            if large_grid_win != None:
-                won_or_tie = True
-                player_won_or_tie = large_grid_win
-                break
-
+        print("Player 2's turn (O)")
+        player = human2
+    
+    if next_large_grid is None or large_grid_state[next_large_grid] is not None:
+        selected_grid = get_large_grid_input()
+    else:
+        selected_grid = next_large_grid
+    
+    small_grid_index = get_small_grid_input(selected_grid)
+    game_state[selected_grid][small_grid_index] = player
+    
+    small_grid_winner = check_small_grid_win_state(selected_grid)
+    
+    if small_grid_winner is not None:
+        print(f"Player {player} has won the small grid at position {selected_grid}!")
+    
+    large_grid_winner = check_large_grid_win_state()
+    
+    if large_grid_winner is not None:
+        won_or_tie = True
+        player_won_or_tie = large_grid_winner
+    
+    next_large_grid = small_grid_index
+    
+    if large_grid_state[next_large_grid] is not None:
+        print("The next large grid is already won. Please choose any non-won grid.")
+        next_large_grid = None
+    
     turn += 1
+    printGameState()
 
-print("Game Over")
+
 if player_won_or_tie == "tie":
-    print("It's a tie!")
+    print("The game ended in a tie!")
 else:
-    print(f"Player {player_won_or_tie} wins!")
+    print(f"Player {player_won_or_tie} has won the game!")
