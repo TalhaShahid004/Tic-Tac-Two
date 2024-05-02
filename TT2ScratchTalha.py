@@ -161,11 +161,13 @@ def get_small_grid_input(selected_grid):
         # map the move's row and column to an index 0-8
         small_grid_index = 3 * (int(rowMove) - 1) + (int(columnMove) - 1)
         
-        # check if the spot is not already played
-        if game_state[selected_grid][small_grid_index] == None:
+        # check if the spot is not already played and the small grid is not won
+        if game_state[selected_grid][small_grid_index] == None and large_grid_state[selected_grid] == None:
             return small_grid_index
         else:
-            print("That spot is already played. Please choose another one.")
+            print("That spot is already played or the small grid is already won. Please choose another one.")
+
+
 
 # 0 1 2
 # 3 4 5
@@ -251,6 +253,7 @@ while not won_or_tie:
     
     turn += 1
     printGameState()
+
 
 
 if player_won_or_tie == "tie":
