@@ -156,8 +156,26 @@ def get_small_grid_input(selected_grid):
         else:
             print("That spot is already played. Please choose another one.")
 
+# takes in the player/turn, the board, depth, and alpha and beta values
+def minimax(player, board, depth, alpha, beta):
+    # if the game is over, return the score
+    if check_large_grid_win_state != None:
+        return evaluation(player, board)
+    
+    # if the depth is 0, return the score
+    if depth == 0:
+        return evaluation(player, board)
+    
+    # if it is the player's turn
+    if player == "X":
+        # we want to maximise the score
+        maxEval = float("-inf")
+        
+    
 
-
+def evaluation(player, board):
+    
+    return 0
 
 # 0 1 2
 # 3 4 5
