@@ -300,20 +300,20 @@ def evaluate_blocking_two_in_a_row_Large_grid(player, Large_grid):
     score = 0
     for i in range(0, 9, 3):
         if Large_grid[i] == opponent and Large_grid[i+1] == None and Large_grid[i+2] == None:
-            score += 300
+            score += 200
         
 
     # Check columns
     for i in range(3):
         if Large_grid[i] == opponent and Large_grid[i+3] == None and Large_grid[i+6] == None:
-            score += 300
+            score += 200
 
     # Check diagonals
     if Large_grid[0] == opponent and Large_grid[4] == None and Large_grid[8] == None:
-        score += 300
+        score += 200
 
     if Large_grid[2] == opponent and Large_grid[4] == None and Large_grid[6] == None:
-        score += 300
+        score += 200
 
     return score
 
