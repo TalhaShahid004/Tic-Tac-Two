@@ -33,7 +33,7 @@ def check_small_grid_win_state(selected_grid):
         if game_state[selected_grid][3*i] == game_state[selected_grid][3*i+1] == game_state[selected_grid][3*i+2] != None:
             # update the large grid state
             large_grid_state[selected_grid] = game_state[selected_grid][3*i]
-           
+            
             # return the winner
             return game_state[selected_grid][3*i]
         
@@ -41,7 +41,7 @@ def check_small_grid_win_state(selected_grid):
         if game_state[selected_grid][i] == game_state[selected_grid][i+3] == game_state[selected_grid][i+6] != None:
             # update the large grid state
             large_grid_state[selected_grid] = game_state[selected_grid][i]
-           
+            
             # return the winner
             return game_state[selected_grid][i]
         
@@ -84,7 +84,7 @@ def check_large_grid_win_state():
     for i in range(3):
         if large_grid_state[i] == large_grid_state[i+3] == large_grid_state[i+6] != None:
             return large_grid_state[i]
-        
+    
     # check for a diagonal win
     if large_grid_state[0] == large_grid_state[4] == large_grid_state[8] != None:
         return large_grid_state[0]
@@ -97,10 +97,10 @@ def check_large_grid_win_state():
     for i in range(9):
         if large_grid_state[i] != None:
             count += 1
-        
+    
     if count == 9:
         return "tie"
-        
+    
     # if no one has won and there is no tie
     return None
 
@@ -229,7 +229,17 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
                 break
         return minEval, best_move
 
+LargeGridweights = [
+    1.4, 1, 1.4,
+    1 , 1.75, 1,
+    1.4, 1, 1.4,
+]
 
+SmallGridWeights = [
+    0.2,   0.17, 0.2, 
+    0.17, 0.22, 0.17, 
+    0.2,   0.17, 0.2
+]
 
 def evaluation(player, board):
     score = 0
@@ -243,12 +253,139 @@ def evaluation(player, board):
     for i in range(9):
         small_grid = game_state[i]
         score += evaluate_small_grid_block(player, small_grid)
-
+        score += evaluate_two_in_a_row_small_grid(player, small_grid)
+        score += evaluate_blocking_two_in_a_row_small_grid(player, small_grid)
+        score *= LargeGridweights[i]
+    
     # Evaluate large grid win
     score += evaluate_large_grid_win(player, board)
 
     # Evaluate large grid block
     score += evaluate_large_grid_block(player, board)
+    score += evaluate_blocking_two_in_a_row_Large_grid(player, board)
+    score += evaluate_two_in_a_row_Large_grid(player, board)
+    return score
+
+
+def evaluate_blocking_two_in_a_row_small_grid(player, small_grid):
+    opponent = 'O' if player == 'X' else 'X'
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if small_grid[i] == opponent and small_grid[i+1] == None and small_grid[i+2] == None:
+            score += 30
+            score*=SmallGridWeights[i+1]
+        
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == opponent and small_grid[i+3] == None and small_grid[i+6] == None:
+            score += 30
+            score*=SmallGridWeights[i+3]
+
+    # Check diagonals
+    if small_grid[0] == opponent and small_grid[4] == None and small_grid[8] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    if small_grid[2] == opponent and small_grid[4] == None and small_grid[6] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    return score
+
+def evaluate_blocking_two_in_a_row_Large_grid(player, Large_grid):
+    opponent = 'O' if player == 'X' else 'X'
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if Large_grid[i] == opponent and Large_grid[i+1] == None and Large_grid[i+2] == None:
+            score += 300
+        
+
+    # Check columns
+    for i in range(3):
+        if Large_grid[i] == opponent and Large_grid[i+3] == None and Large_grid[i+6] == None:
+            score += 300
+
+    # Check diagonals
+    if Large_grid[0] == opponent and Large_grid[4] == None and Large_grid[8] == None:
+        score += 300
+
+    if Large_grid[2] == opponent and Large_grid[4] == None and Large_grid[6] == None:
+        score += 300
+
+    return score
+
+def evaluate_two_in_a_row_small_grid(player, small_grid):
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if small_grid[i] == player and small_grid[i+1] == None and small_grid[i+2] == None:
+            score += 30
+            score*=SmallGridWeights[i + 1]
+        
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == player and small_grid[i+3] == None and small_grid[i+6] == None:
+            score += 30
+            score*=SmallGridWeights[i+3]
+
+    # Check diagonals
+    if small_grid[0] == player and small_grid[4] == None and small_grid[8] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    if small_grid[2] == player and small_grid[4] == None and small_grid[6] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    return score
+
+def evaluate_two_in_a_row_Large_grid(player, Large_grid):
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if Large_grid[i] == player and Large_grid[i+1] == None and Large_grid[i+2] == None:
+            score += 300
+        
+
+    # Check columns
+    for i in range(3):
+        if Large_grid[i] == player and Large_grid[i+3] == None and Large_grid[i+6] == None:
+            score += 300
+
+    # Check diagonals
+    if Large_grid[0] == player and Large_grid[4] == None and Large_grid[8] == None:
+        score += 300
+
+    if Large_grid[2] == player and Large_grid[4] == None and Large_grid[6] == None:
+        score += 300
+
+    return score
+
+
+def evaluate_large_grid_win(player, large_grid):
+    score = 0
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if large_grid[i] == large_grid[i+1] == player and large_grid[i+2] == None:
+            score += 1000
+        
+
+    # Check columns
+    for i in range(3):
+        if large_grid[i] == large_grid[i+3] == player and large_grid[i+6] == None:
+            score += 1000
+
+    # Check diagonals
+    if large_grid[0] == large_grid[4] == player and large_grid[8] == None:
+        score += 1000
+
+    if large_grid[2] == large_grid[4] == player and large_grid[6] == None:
+        score += 1000
 
     return score
 
@@ -258,21 +395,25 @@ def evaluate_small_grid_win(player, small_grid):
 
     # Check rows
     for i in range(0, 9, 3):
-        if small_grid[i] == small_grid[i+1] == small_grid[i+2] == player:
+        if small_grid[i] == small_grid[i+1] == player and small_grid[i+2] == None:
             score += 100
+            score*=SmallGridWeights[i+1]
         
 
     # Check columns
     for i in range(3):
-        if small_grid[i] == small_grid[i+3] == small_grid[i+6] == player:
+        if small_grid[i] == small_grid[i+3] == player and small_grid[i+6] == None:
             score += 100
+            score*=SmallGridWeights[i+3]
 
     # Check diagonals
-    if small_grid[0] == small_grid[4] == small_grid[8] == player:
+    if small_grid[0] == small_grid[4] == player and small_grid[8] == None:
         score += 100
+        score*=SmallGridWeights[4]
 
-    if small_grid[2] == small_grid[4] == small_grid[6] == player:
+    if small_grid[2] == small_grid[4] == player and small_grid[6] == None:
         score += 100
+        score*=SmallGridWeights[4]
 
     return score
 
@@ -285,37 +426,47 @@ def evaluate_small_grid_block(player, small_grid):
     for i in range(0, 9, 3):
         if small_grid[i] == small_grid[i+1] == opponent and small_grid[i+2] == None:
             score += 90
+            score*=SmallGridWeights[i+2]
         elif small_grid[i] == small_grid[i+2] == opponent and small_grid[i+1] == None:
             score += 90
+            score*=SmallGridWeights[i+1]
         elif small_grid[i+1] == small_grid[i+2] == opponent and small_grid[i] == None:
             score += 90
+            score*=SmallGridWeights[i]
 
     # Check columns
     for i in range(3):
         if small_grid[i] == small_grid[i+3] == opponent and small_grid[i+6] == None:
-            score += 90
+            score*=SmallGridWeights[i+6]
         elif small_grid[i] == small_grid[i+6] == opponent and small_grid[i+3] == None:
-            score += 90
+            score*=SmallGridWeights[i+3]
         elif small_grid[i+3] == small_grid[i+6] == opponent and small_grid[i] == None:
-            score += 90
+            score*=SmallGridWeights[i]
 
     # Check diagonals
     if small_grid[0] == small_grid[4] == opponent and small_grid[8] == None:
         score += 90
+        score*=SmallGridWeights[8]
     elif small_grid[0] == small_grid[8] == opponent and small_grid[4] == None:
         score += 90
+        score*=SmallGridWeights[4]
     elif small_grid[4] == small_grid[8] == opponent and small_grid[0] == None:
         score += 90
+        score*=SmallGridWeights[0]
 
     if small_grid[2] == small_grid[4] == opponent and small_grid[6] == None:
         score += 90
+        score*=SmallGridWeights[6]
     elif small_grid[2] == small_grid[6] == opponent and small_grid[4] == None:
         score += 90
+        score*=SmallGridWeights[4]
     elif small_grid[4] == small_grid[6] == opponent and small_grid[2] == None:
         score += 90
+        score*=SmallGridWeights[2]
 
     return score
 
+# this evaluation will check if the board has been won by the AI player
 def evaluate_large_grid_win(player, board):
     score = 0
 
@@ -338,6 +489,7 @@ def evaluate_large_grid_win(player, board):
 
     return score
 
+# this code will check if placing a move in the big grid will block the opponent from winning
 def evaluate_large_grid_block(player, board):
     score = 0
     opponent = 'O' if player == 'X' else 'X'
@@ -518,7 +670,10 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            selected_grid, selected_small_grid = get_ai_move(human2, 20, next_large_grid)
+            depth = 3
+            player = human2
+            grid = next_large_grid
+            selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
             game_state[selected_grid][selected_small_grid] = human2
 
             small_grid_winner = check_small_grid_win_state(selected_grid)
