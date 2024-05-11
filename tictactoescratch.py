@@ -389,22 +389,26 @@ def gui():
     app.title("Ultimate Tic Tac Toe")
     app.minsize(400, 400)
     app.resizable(False, False)
+    
     grid_frames = []
     
     # Create player title
     turn_label = ctk.CTkLabel(app, text="Player " + player + "'s turn", font=("Arial", 16))
-    turn_label.grid(row=0, column=0, columnspan=3, padx=20, pady=(20, 0), sticky="n")
+    turn_label.pack(pady=(20, 0))
     
     def on_button_click(row, col, large_row, large_col):
         # Handle button click event
         print(f"Button clicked: Row={row}, Col={col}, Large Row={large_row}, Large Col={large_col}")
     
     # Create a 3x3 grid of small grids
+    main_frame = ctk.CTkFrame(app)
+    main_frame.pack(expand=True, fill="both", padx=10, pady=10)
+    
     for i in range(3):
-        app.grid_rowconfigure(i, weight=1)
-        app.grid_columnconfigure(i, weight=1)
+        main_frame.grid_rowconfigure(i, weight=1)
+        main_frame.grid_columnconfigure(i, weight=1)
         for j in range(3):
-            outer_frame = ctk.CTkFrame(app)
+            outer_frame = ctk.CTkFrame(main_frame)
             outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
             grid_frame = SmallGrid(outer_frame, i, j, on_button_click)
             grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
@@ -416,12 +420,36 @@ def gui():
                 cell_value = game_state[i][j]
                 small_grid_index = (i // 3) * 3 + (j // 3)
                 button_index = (i % 3) * 3 + (j % 3)
+                button = grid_frames[small_grid_index].winfo_children()[0].buttons[button_index]
+                
                 if cell_value == 'X':
-                    grid_frames[small_grid_index].winfo_children()[0].buttons[button_index].configure(text='X')
+                    button.configure(text='X', fg_color="red")
                 elif cell_value == 'O':
-                    grid_frames[small_grid_index].winfo_children()[0].buttons[button_index].configure(text='O')
+                    button.configure(text='O', fg_color="darkblue")
                 else:
-                    grid_frames[small_grid_index].winfo_children()[0].buttons[button_index].configure(text='')
+                    button.configure(text='', fg_color=ctk.ThemeManager.theme["CTkButton"]["fg_color"])
+        
+        # Highlight playable large grids
+        for i in range(9):
+            if next_large_grid is None or next_large_grid == i:
+                if large_grid_state[i] is None:
+                    grid_frames[i].configure(border_width=2, border_color="yellow")
+                else:
+                    grid_frames[i].configure(border_width=0)
+            else:
+                grid_frames[i].configure(border_width=0)
+        
+        # Update large grid state colors
+        for i in range(9):
+            if large_grid_state[i] == 'X':
+                for button in grid_frames[i].winfo_children()[0].buttons:
+                    button.configure(fg_color="darkred")
+            elif large_grid_state[i] == 'O':
+                for button in grid_frames[i].winfo_children()[0].buttons:
+                    button.configure(fg_color="darkblue")
+            elif large_grid_state[i] == 'tie':
+                for button in grid_frames[i].winfo_children()[0].buttons:
+                    button.configure(fg_color="gray")
     
     update_gui()
     
