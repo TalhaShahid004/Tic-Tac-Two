@@ -1,3 +1,5 @@
+import customtkinter as ctk
+
 # ultimate tic tac toe
 
 # I will use a 2d array for the game logic
@@ -355,6 +357,84 @@ def get_ai_move(player, depth, next_large_grid):
                         return i, j
     return move
 
+
+def gui():
+    # using custom tkinter, i want to build a gui for the game
+    # i have the game state in the variable game_state as a 2d array
+    # i will use the game_state to update the gui after each button click
+    # the playable large grids will be outlined in yellow, 
+    # the playable grid is found in the next_large_grid variable
+    # If a large grid has been won, then change the background colours of the buttons to a darker shade of the winning player
+    # if there is a tie, then change the background colour of the buttons to grey
+    # for human moves 'O', we use dark blue, for AI moves 'X', we use red. 
+    # the default colour is blue for the buttons
+
+    app = ctk.CTk()
+    app.title("Ultimate Tic Tac Toe")
+    app.geometry("800x800")
+    app.minsize(400, 400)
+
+    # Configure grid layout
+    app.grid_rowconfigure(0, weight=1)
+    app.grid_columnconfigure(0, weight=1)
+
+    # Create turn label
+    turn_label = ctk.CTkLabel(app, text="Player X's turn", font=("Arial", 16))
+    turn_label.grid(row=0, column=0, padx=20, pady=(20, 0))
+
+    # Create large grid frame
+    large_grid_frame = ctk.CTkFrame(app)
+    large_grid_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
+
+    # Configure large grid layout
+    for i in range(3):
+        large_grid_frame.grid_rowconfigure(i, weight=1)
+        large_grid_frame.grid_columnconfigure(i, weight=1)
+
+    # Create small grid frames and buttons
+    for large_row in range(3):
+        for large_col in range(3):
+            small_grid_frame = ctk.CTkFrame(large_grid_frame)
+            small_grid_frame.grid(row=large_row, column=large_col, padx=3, pady=3, sticky="nsew")
+
+            # Configure small grid layout
+            for i in range(3):
+                small_grid_frame.grid_rowconfigure(i, weight=1)
+                small_grid_frame.grid_columnconfigure(i, weight=1)
+
+            # Create buttons within the small grid
+            for small_row in range(3):
+                for small_col in range(3):
+                    button = ctk.CTkButton(small_grid_frame, text="", width=50, height=50, corner_radius=1, fg_color="#1E90FF")
+                    button.grid(row=small_row, column=small_col, sticky="nsew", padx=2, pady=2)
+
+                    # Update button color based on game state
+                    large_grid_index = large_row * 3 + large_col
+                    small_grid_index = small_row * 3 + small_col
+                    cell_value = game_state[large_grid_index][small_grid_index]
+                    if cell_value == 'O':
+                        button.configure(fg_color="#4B7BE5", text_color="#FFFFFF", text="O", font=("Arial", 20))
+                    elif cell_value == 'X':
+                        button.configure(fg_color="#F08080", text_color="#FFFFFF", text="X", font=("Arial", 20))
+
+            # Update small grid color based on game state
+            small_grid_index = large_row * 3 + large_col
+            small_grid_win_state = check_small_grid_win_state(small_grid_index)
+            if small_grid_win_state == 'O':
+                small_grid_frame.configure(fg_color="blue")
+            elif small_grid_win_state == 'X':
+                small_grid_frame.configure(fg_color="red")
+            elif small_grid_win_state == "tie":
+                small_grid_frame.configure(fg_color="gray")
+            elif small_grid_index == next_large_grid:
+                small_grid_frame.configure(fg_color="yellow")
+            else:
+                small_grid_frame.configure(fg_color="transparent")
+
+    app.mainloop()
+
+
+# the actual game loop 
 while not won_or_tie:
     # determines the player turn
     if turn % 2 == 0:
@@ -370,7 +450,8 @@ while not won_or_tie:
             selected_grid = get_large_grid_input()
         else:
             selected_grid = next_large_grid
-
+        
+        
         # get the small grid input
         selected_small_grid = get_small_grid_input(selected_grid)
     else:
@@ -404,6 +485,12 @@ while not won_or_tie:
     if player_won_or_tie != None:
         won_or_tie = True
         break
+    
+    # i want to add the gui here 
+
+    # Update the GUI
+    gui()
+
 
     turn += 1
     printGameState()
@@ -414,3 +501,9 @@ if player_won_or_tie == "tie":
     print("The game ended in a tie!")
 else:
     print(f"Player {player_won_or_tie} has won the game!")
+
+
+
+
+
+        
