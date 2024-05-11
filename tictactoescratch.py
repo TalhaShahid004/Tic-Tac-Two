@@ -357,8 +357,6 @@ def get_ai_move(player, depth, next_large_grid):
                         return i, j
     return move
 
-
-def gui():
     # using custom tkinter, i want to build a gui for the game
     # i have the game state in the variable game_state as a 2d array
     # i will use the game_state to update the gui after each button click
@@ -369,69 +367,66 @@ def gui():
     # for human moves 'O', we use dark blue, for AI moves 'X', we use red. 
     # the default colour is blue for the buttons
 
+
+class SmallGrid(ctk.CTkFrame):
+    def __init__(self, master, large_row, large_col, on_button_click):
+        super().__init__(master)
+        self.buttons = []
+        self.large_row = large_row
+        self.large_col = large_col
+        
+        for r in range(3):
+            self.grid_rowconfigure(r, weight=1)
+            self.grid_columnconfigure(r, weight=1)
+            for c in range(3):
+                button = ctk.CTkButton(self, text="", width=50, height=50, corner_radius=1,
+                                       command=lambda b=r, a=c: on_button_click(b, a, self.large_row, self.large_col))
+                button.grid(row=r, column=c, sticky="nsew")
+                self.buttons.append(button)
+
+def gui():
     app = ctk.CTk()
     app.title("Ultimate Tic Tac Toe")
-    app.geometry("800x800")
     app.minsize(400, 400)
-
-    # Configure grid layout
-    app.grid_rowconfigure(0, weight=1)
-    app.grid_columnconfigure(0, weight=1)
-
-    # Create turn label
-    turn_label = ctk.CTkLabel(app, text="Player X's turn", font=("Arial", 16))
-    turn_label.grid(row=0, column=0, padx=20, pady=(20, 0))
-
-    # Create large grid frame
-    large_grid_frame = ctk.CTkFrame(app)
-    large_grid_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
-
-    # Configure large grid layout
+    app.resizable(False, False)
+    grid_frames = []
+    
+    # Create player title
+    turn_label = ctk.CTkLabel(app, text="Player " + player + "'s turn", font=("Arial", 16))
+    turn_label.grid(row=0, column=0, columnspan=3, padx=20, pady=(20, 0), sticky="n")
+    
+    def on_button_click(row, col, large_row, large_col):
+        # Handle button click event
+        print(f"Button clicked: Row={row}, Col={col}, Large Row={large_row}, Large Col={large_col}")
+    
+    # Create a 3x3 grid of small grids
     for i in range(3):
-        large_grid_frame.grid_rowconfigure(i, weight=1)
-        large_grid_frame.grid_columnconfigure(i, weight=1)
-
-    # Create small grid frames and buttons
-    for large_row in range(3):
-        for large_col in range(3):
-            small_grid_frame = ctk.CTkFrame(large_grid_frame)
-            small_grid_frame.grid(row=large_row, column=large_col, padx=3, pady=3, sticky="nsew")
-
-            # Configure small grid layout
-            for i in range(3):
-                small_grid_frame.grid_rowconfigure(i, weight=1)
-                small_grid_frame.grid_columnconfigure(i, weight=1)
-
-            # Create buttons within the small grid
-            for small_row in range(3):
-                for small_col in range(3):
-                    button = ctk.CTkButton(small_grid_frame, text="", width=50, height=50, corner_radius=1, fg_color="#1E90FF")
-                    button.grid(row=small_row, column=small_col, sticky="nsew", padx=2, pady=2)
-
-                    # Update button color based on game state
-                    large_grid_index = large_row * 3 + large_col
-                    small_grid_index = small_row * 3 + small_col
-                    cell_value = game_state[large_grid_index][small_grid_index]
-                    if cell_value == 'O':
-                        button.configure(fg_color="#4B7BE5", text_color="#FFFFFF", text="O", font=("Arial", 20))
-                    elif cell_value == 'X':
-                        button.configure(fg_color="#F08080", text_color="#FFFFFF", text="X", font=("Arial", 20))
-
-            # Update small grid color based on game state
-            small_grid_index = large_row * 3 + large_col
-            small_grid_win_state = check_small_grid_win_state(small_grid_index)
-            if small_grid_win_state == 'O':
-                small_grid_frame.configure(fg_color="blue")
-            elif small_grid_win_state == 'X':
-                small_grid_frame.configure(fg_color="red")
-            elif small_grid_win_state == "tie":
-                small_grid_frame.configure(fg_color="gray")
-            elif small_grid_index == next_large_grid:
-                small_grid_frame.configure(fg_color="yellow")
-            else:
-                small_grid_frame.configure(fg_color="transparent")
-
+        app.grid_rowconfigure(i, weight=1)
+        app.grid_columnconfigure(i, weight=1)
+        for j in range(3):
+            outer_frame = ctk.CTkFrame(app)
+            outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
+            grid_frame = SmallGrid(outer_frame, i, j, on_button_click)
+            grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
+            grid_frames.append(outer_frame)
+    
+    def update_gui():
+        for i in range(9):
+            for j in range(9):
+                cell_value = game_state[i][j]
+                small_grid_index = (i // 3) * 3 + (j // 3)
+                button_index = (i % 3) * 3 + (j % 3)
+                if cell_value == 'X':
+                    grid_frames[small_grid_index].winfo_children()[0].buttons[button_index].configure(text='X')
+                elif cell_value == 'O':
+                    grid_frames[small_grid_index].winfo_children()[0].buttons[button_index].configure(text='O')
+                else:
+                    grid_frames[small_grid_index].winfo_children()[0].buttons[button_index].configure(text='')
+    
+    update_gui()
+    
     app.mainloop()
+
 
 
 # the actual game loop 
