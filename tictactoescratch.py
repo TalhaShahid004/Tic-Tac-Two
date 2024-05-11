@@ -416,16 +416,19 @@ def gui():
     
     def update_gui():
         for i in range(9):
+            large_row = i // 3
+            large_col = i % 3
             for j in range(9):
                 cell_value = game_state[i][j]
-                small_grid_index = (i // 3) * 3 + (j // 3)
-                button_index = (i % 3) * 3 + (j % 3)
-                button = grid_frames[small_grid_index].winfo_children()[0].buttons[button_index]
+                small_row = j // 3
+                small_col = j % 3
+                button_index = small_row * 3 + small_col
+                button = grid_frames[i].winfo_children()[0].buttons[button_index]
                 
                 if cell_value == 'X':
                     button.configure(text='X', fg_color="red")
                 elif cell_value == 'O':
-                    button.configure(text='O', fg_color="darkblue")
+                    button.configure(text='O', fg_color="blue")
                 else:
                     button.configure(text='', fg_color=ctk.ThemeManager.theme["CTkButton"]["fg_color"])
         
@@ -454,6 +457,7 @@ def gui():
     update_gui()
     
     app.mainloop()
+
 
 
 
