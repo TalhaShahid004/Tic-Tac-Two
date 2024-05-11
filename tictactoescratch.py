@@ -357,15 +357,15 @@ def get_ai_move(player, depth, next_large_grid):
                         return i, j
     return move
 
-    # using custom tkinter, i want to build a gui for the game
-    # i have the game state in the variable game_state as a 2d array
-    # i will use the game_state to update the gui after each button click
-    # the playable large grids will be outlined in yellow, 
-    # the playable grid is found in the next_large_grid variable
-    # If a large grid has been won, then change the background colours of the buttons to a darker shade of the winning player
-    # if there is a tie, then change the background colour of the buttons to grey
-    # for human moves 'O', we use dark blue, for AI moves 'X', we use red. 
-    # the default colour is blue for the buttons
+# using custom tkinter, i want to build a gui for the game
+# i have the game state in the variable game_state as a 2d array
+# i will use the game_state to update the gui after each button click
+# the playable large grids will be outlined in yellow, 
+# the playable grid is found in the next_large_grid variable
+# If a large grid has been won, then change the background colours of the buttons to a darker shade of the winning player
+# if there is a tie, then change the background colour of the buttons to grey
+# for human moves 'O', we use dark blue, for AI moves 'X', we use red. 
+# the default colour is blue for the buttons
 
 
 class SmallGrid(ctk.CTkFrame):
@@ -426,9 +426,9 @@ def gui():
                 button = grid_frames[i].winfo_children()[0].buttons[button_index]
                 
                 if cell_value == 'X':
-                    button.configure(text='X', fg_color="red")
+                    button.configure(text='X', fg_color="#4B7BE5")
                 elif cell_value == 'O':
-                    button.configure(text='O', fg_color="blue")
+                    button.configure(text='O', fg_color="#F08080")
                 else:
                     button.configure(text='', fg_color=ctk.ThemeManager.theme["CTkButton"]["fg_color"])
         
@@ -446,10 +446,10 @@ def gui():
         for i in range(9):
             if large_grid_state[i] == 'X':
                 for button in grid_frames[i].winfo_children()[0].buttons:
-                    button.configure(fg_color="darkred")
+                    button.configure(fg_color="blue")
             elif large_grid_state[i] == 'O':
                 for button in grid_frames[i].winfo_children()[0].buttons:
-                    button.configure(fg_color="darkblue")
+                    button.configure(fg_color="red")
             elif large_grid_state[i] == 'tie':
                 for button in grid_frames[i].winfo_children()[0].buttons:
                     button.configure(fg_color="gray")
