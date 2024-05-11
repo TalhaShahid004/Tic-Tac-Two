@@ -5,7 +5,7 @@ import customtkinter as ctk
 # I will use a 2d array for the game logic
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
-print(game_state)
+# print(game_state)
 
 
 def printGameState():
@@ -341,7 +341,7 @@ next_large_grid = None
 large_grid_state = [None for i in range(9)] # None means no one has won
 turn = 0
 
-printGameState()
+# printGameState()
 
 human1 = "X"
 human2 = "O"
@@ -385,7 +385,6 @@ class SmallGrid(ctk.CTkFrame):
                 self.buttons.append(button)
 
 def gui():
-
     global turn, next_large_grid, won_or_tie, player_won_or_tie
 
     turn = 0
@@ -441,6 +440,9 @@ def gui():
         if player_won_or_tie is not None:
             won_or_tie = True
 
+        if won_or_tie:
+            check_game_over()
+        
         turn += 1
         update_gui()
 
@@ -463,15 +465,12 @@ def gui():
             player_won_or_tie = check_large_grid_win_state()
             if player_won_or_tie is not None:
                 won_or_tie = True
-
+            
+            if won_or_tie:
+                check_game_over()
+            
             turn += 1
             update_gui()
-
-        if won_or_tie:
-            if player_won_or_tie == "tie":
-                print("The game ended in a tie!")
-            else:
-                print(f"Player {player_won_or_tie} has won the game!")
 
     # Create a 3x3 grid of small grids
     main_frame = ctk.CTkFrame(app)
@@ -486,11 +485,37 @@ def gui():
             grid_frame = SmallGrid(outer_frame, i, j, on_button_click)
             grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
             grid_frames.append(outer_frame)
-    
+
+    def check_game_over():
+        global won_or_tie, player_won_or_tie
+
+        if won_or_tie:
+            if player_won_or_tie == "tie":
+                show_winner_popup("tie")
+            else:
+                show_winner_popup(player_won_or_tie)
+
+    def show_winner_popup(winner):
+        popup = ctk.CTkToplevel(app)
+        popup.title("Game Over")
+        popup.geometry("300x150")
+        popup.resizable(False, False)
+        popup.transient(app)  # Make the popup window appear on top of the main window
+        popup.grab_set()  # Disable interaction with the main window until the popup is closed
+
+        if winner == "tie":
+            message = "The game ended in a tie!"
+        else:
+            message = f"Player {winner} has won the game!"
+
+        label = ctk.CTkLabel(popup, text=message, font=("Arial", 16))
+        label.pack(expand=True)
+
+        button = ctk.CTkButton(popup, text="Close", command=popup.destroy)
+        button.pack(pady=10)
+        
     def update_gui():
         for i in range(9):
-            large_row = i // 3
-            large_col = i % 3
             for j in range(9):
                 cell_value = game_state[i][j]
                 small_row = j // 3
