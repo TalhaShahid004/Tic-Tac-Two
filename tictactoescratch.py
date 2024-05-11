@@ -234,76 +234,146 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
 def evaluation(player, board):
     score = 0
 
-    # Check for wins in each small grid
+    # Evaluate small grid wins
     for i in range(9):
-        if board[i] != None:
-            small_grid_score = evaluate_small_grid(player, game_state[i])
-            score += small_grid_score
-        
+        small_grid = game_state[i]
+        score += evaluate_small_grid_win(player, small_grid)
 
-    # Check for wins in the large grid
-    large_grid_score = evaluate_large_grid(player, board)
-    score += large_grid_score * 10  # Giving higher weight to large grid wins
+    # Evaluate small grid blocks
+    for i in range(9):
+        small_grid = game_state[i]
+        score += evaluate_small_grid_block(player, small_grid)
+
+    # Evaluate large grid win
+    score += evaluate_large_grid_win(player, board)
+
+    # Evaluate large grid block
+    score += evaluate_large_grid_block(player, board)
 
     return score
 
-def evaluate_small_grid(player, small_grid):
+# this function checks if placing a move in a small grid will result in a win
+def evaluate_small_grid_win(player, small_grid):
     score = 0
 
     # Check rows
     for i in range(0, 9, 3):
         if small_grid[i] == small_grid[i+1] == small_grid[i+2] == player:
-            score += 1
-        elif small_grid[i] == small_grid[i+1] == small_grid[i+2] != None and small_grid[i] != player:
-            score -= 1
+            score += 100
+        
 
     # Check columns
     for i in range(3):
         if small_grid[i] == small_grid[i+3] == small_grid[i+6] == player:
-            score += 1
-        elif small_grid[i] == small_grid[i+3] == small_grid[i+6] != None and small_grid[i] != player:
-            score -= 1
+            score += 100
 
     # Check diagonals
     if small_grid[0] == small_grid[4] == small_grid[8] == player:
-        score += 1
-    elif small_grid[0] == small_grid[4] == small_grid[8] != None and small_grid[0] != player:
-        score -= 1
+        score += 100
 
     if small_grid[2] == small_grid[4] == small_grid[6] == player:
-        score += 1
-    elif small_grid[2] == small_grid[4] == small_grid[6] != None and small_grid[2] != player:
-        score -= 1
+        score += 100
 
     return score
 
-def evaluate_large_grid(player, board):
+# this function checks if placing a move in a small grid will block an opponents win
+def evaluate_small_grid_block(player, small_grid):
+    score = 0
+    opponent = 'O' if player == 'X' else 'X'
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if small_grid[i] == small_grid[i+1] == opponent and small_grid[i+2] == None:
+            score += 90
+        elif small_grid[i] == small_grid[i+2] == opponent and small_grid[i+1] == None:
+            score += 90
+        elif small_grid[i+1] == small_grid[i+2] == opponent and small_grid[i] == None:
+            score += 90
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == small_grid[i+3] == opponent and small_grid[i+6] == None:
+            score += 90
+        elif small_grid[i] == small_grid[i+6] == opponent and small_grid[i+3] == None:
+            score += 90
+        elif small_grid[i+3] == small_grid[i+6] == opponent and small_grid[i] == None:
+            score += 90
+
+    # Check diagonals
+    if small_grid[0] == small_grid[4] == opponent and small_grid[8] == None:
+        score += 90
+    elif small_grid[0] == small_grid[8] == opponent and small_grid[4] == None:
+        score += 90
+    elif small_grid[4] == small_grid[8] == opponent and small_grid[0] == None:
+        score += 90
+
+    if small_grid[2] == small_grid[4] == opponent and small_grid[6] == None:
+        score += 90
+    elif small_grid[2] == small_grid[6] == opponent and small_grid[4] == None:
+        score += 90
+    elif small_grid[4] == small_grid[6] == opponent and small_grid[2] == None:
+        score += 90
+
+    return score
+
+def evaluate_large_grid_win(player, board):
     score = 0
 
     # Check rows
     for i in range(0, 9, 3):
         if board[i] == board[i+1] == board[i+2] == player:
-            score += 1
-        elif board[i] == board[i+1] == board[i+2] != None and board[i] != player:
-            score -= 1
+            score += 1000
 
     # Check columns
     for i in range(3):
         if board[i] == board[i+3] == board[i+6] == player:
-            score += 1
-        elif board[i] == board[i+3] == board[i+6] != None and board[i] != player:
-            score -= 1
+            score += 1000
 
     # Check diagonals
     if board[0] == board[4] == board[8] == player:
-        score += 1
-    elif board[0] == board[4] == board[8] != None and board[0] != player:
-        score -= 1
+        score += 1000
 
     if board[2] == board[4] == board[6] == player:
-        score += 1
-    elif board[2] == board[4] == board[6] != None and board[2] != player:
-        score -= 1
+        score += 1000
+
+    return score
+
+def evaluate_large_grid_block(player, board):
+    score = 0
+    opponent = 'O' if player == 'X' else 'X'
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if board[i] == board[i+1] == opponent and board[i+2] == None:
+            score += 900
+        elif board[i] == board[i+2] == opponent and board[i+1] == None:
+            score += 900
+        elif board[i+1] == board[i+2] == opponent and board[i] == None:
+            score += 900
+
+    # Check columns
+    for i in range(3):
+        if board[i] == board[i+3] == opponent and board[i+6] == None:
+            score += 900
+        elif board[i] == board[i+6] == opponent and board[i+3] == None:
+            score += 900
+        elif board[i+3] == board[i+6] == opponent and board[i] == None:
+            score += 900
+
+    # Check diagonals
+    if board[0] == board[4] == opponent and board[8] == None:
+        score += 900
+    elif board[0] == board[8] == opponent and board[4] == None:
+        score += 900
+    elif board[4] == board[8] == opponent and board[0] == None:
+        score += 900
+
+    if board[2] == board[4] == opponent and board[6] == None:
+        score += 900
+    elif board[2] == board[6] == opponent and board[4] == None:
+        score += 900
+    elif board[4] == board[6] == opponent and board[2] == None:
+        score += 900
 
     return score
 
@@ -448,7 +518,7 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            selected_grid, selected_small_grid = get_ai_move(human2, 10, next_large_grid)
+            selected_grid, selected_small_grid = get_ai_move(human2, 20, next_large_grid)
             game_state[selected_grid][selected_small_grid] = human2
 
             small_grid_winner = check_small_grid_win_state(selected_grid)
