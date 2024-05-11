@@ -104,61 +104,61 @@ def check_large_grid_win_state():
     # if no one has won and there is no tie
     return None
 
-def get_large_grid_input():
+# def get_large_grid_input():
     
-    while True:
-        # input validation for large grid row
-        while True:
-            largeGridRow = input("What is your large grid row? (1-3) ")
-            if largeGridRow.isdigit() and 1 <= int(largeGridRow) <= 3:
-                break
-            else:
-                print("Invalid input. Please enter a number between 1 and 3.")
+#     while True:
+#         # input validation for large grid row
+#         while True:
+#             largeGridRow = input("What is your large grid row? (1-3) ")
+#             if largeGridRow.isdigit() and 1 <= int(largeGridRow) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")
         
-        # input validation for large grid column
-        while True: 
-            largeGridColumn = input("What is your large grid column? (1-3) ")
-            if largeGridColumn.isdigit() and 1 <= int(largeGridColumn) <= 3:
-                break
-            else:
-                print("Invalid input. Please enter a number between 1 and 3.")   
+#         # input validation for large grid column
+#         while True: 
+#             largeGridColumn = input("What is your large grid column? (1-3) ")
+#             if largeGridColumn.isdigit() and 1 <= int(largeGridColumn) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")   
         
-        # map the large grid row and column to an index 0-8
-        selected_grid = 3 * (int(largeGridRow) - 1) + (int(largeGridColumn) - 1)
+#         # map the large grid row and column to an index 0-8
+#         selected_grid = 3 * (int(largeGridRow) - 1) + (int(largeGridColumn) - 1)
         
-        # if the grid is not won hence it is available
-        if large_grid_state[selected_grid] == None:
-            return selected_grid
-        else:
-            print("The selected large grid is already won or not available. Please choose another one.")
+#         # if the grid is not won hence it is available
+#         if large_grid_state[selected_grid] == None:
+#             return selected_grid
+#         else:
+#             print("The selected large grid is already won or not available. Please choose another one.")
 
 
-def get_small_grid_input(selected_grid):
-    while True:
-        # input validation for move's row
-        while True:
-            rowMove = input("What is your move's row? (1-3) ")
-            if rowMove.isdigit() and 1 <= int(rowMove) <= 3:
-                break
-            else:
-                print("Invalid input. Please enter a number between 1 and 3.")   
+# def get_small_grid_input(selected_grid):
+#     while True:
+#         # input validation for move's row
+#         while True:
+#             rowMove = input("What is your move's row? (1-3) ")
+#             if rowMove.isdigit() and 1 <= int(rowMove) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")   
 
-        # input validation for move's column
-        while True:
-            columnMove = input("What is your move's column? (1-3) ")
-            if columnMove.isdigit() and 1 <= int(columnMove) <= 3:
-                break
-            else:
-                print("Invalid input. Please enter a number between 1 and 3.")   
+#         # input validation for move's column
+#         while True:
+#             columnMove = input("What is your move's column? (1-3) ")
+#             if columnMove.isdigit() and 1 <= int(columnMove) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")   
         
-        # map the move's row and column to an index 0-8
-        small_grid_index = 3 * (int(rowMove) - 1) + (int(columnMove) - 1)
+#         # map the move's row and column to an index 0-8
+#         small_grid_index = 3 * (int(rowMove) - 1) + (int(columnMove) - 1)
         
-        # check if the spot is not already played
-        if game_state[selected_grid][small_grid_index] == None:
-            return small_grid_index
-        else:
-            print("That spot is already played. Please choose another one.")
+#         # check if the spot is not already played
+#         if game_state[selected_grid][small_grid_index] == None:
+#             return small_grid_index
+#         else:
+#             print("That spot is already played. Please choose another one.")
 
 # takes in the player/turn, the board, depth, and alpha and beta values
 def minimax(player, board, depth, alpha, beta, next_large_grid):
@@ -385,6 +385,18 @@ class SmallGrid(ctk.CTkFrame):
                 self.buttons.append(button)
 
 def gui():
+
+    global turn, next_large_grid, won_or_tie, player_won_or_tie
+
+    turn = 0
+    next_large_grid = None
+    won_or_tie = False
+    player_won_or_tie = None
+    if turn % 2 == 0:
+        player = human1
+    else:
+        player = human2
+
     app = ctk.CTk()
     app.title("Ultimate Tic Tac Toe")
     app.minsize(400, 400)
@@ -397,9 +409,70 @@ def gui():
     turn_label.pack(pady=(20, 0))
     
     def on_button_click(row, col, large_row, large_col):
-        # Handle button click event
-        print(f"Button clicked: Row={row}, Col={col}, Large Row={large_row}, Large Col={large_col}")
-    
+        global turn, next_large_grid, won_or_tie, player_won_or_tie
+
+        if won_or_tie:
+            return
+
+        selected_grid = large_row * 3 + large_col
+        selected_small_grid = row * 3 + col
+
+        if next_large_grid is not None and selected_grid != next_large_grid:
+            return
+
+        if game_state[selected_grid][selected_small_grid] is not None:
+            return
+
+        player = human1 if turn % 2 == 0 else human2
+        game_state[selected_grid][selected_small_grid] = player
+
+        small_grid_winner = check_small_grid_win_state(selected_grid)
+
+        if small_grid_winner is not None:
+            print(f"Player {small_grid_winner} has won the small grid!")
+            next_large_grid = selected_small_grid
+        else:
+            next_large_grid = selected_small_grid
+
+        if large_grid_state[next_large_grid] is not None:
+            next_large_grid = None
+
+        player_won_or_tie = check_large_grid_win_state()
+        if player_won_or_tie is not None:
+            won_or_tie = True
+
+        turn += 1
+        update_gui()
+
+        if not won_or_tie and turn % 2 != 0:
+            # AI player's turn
+            selected_grid, selected_small_grid = get_ai_move(human2, 10, next_large_grid)
+            game_state[selected_grid][selected_small_grid] = human2
+
+            small_grid_winner = check_small_grid_win_state(selected_grid)
+
+            if small_grid_winner is not None:
+                print(f"Player {small_grid_winner} has won the small grid!")
+                next_large_grid = selected_small_grid
+            else:
+                next_large_grid = selected_small_grid
+
+            if large_grid_state[next_large_grid] is not None:
+                next_large_grid = None
+
+            player_won_or_tie = check_large_grid_win_state()
+            if player_won_or_tie is not None:
+                won_or_tie = True
+
+            turn += 1
+            update_gui()
+
+        if won_or_tie:
+            if player_won_or_tie == "tie":
+                print("The game ended in a tie!")
+            else:
+                print(f"Player {player_won_or_tie} has won the game!")
+
     # Create a 3x3 grid of small grids
     main_frame = ctk.CTkFrame(app)
     main_frame.pack(expand=True, fill="both", padx=10, pady=10)
@@ -461,76 +534,76 @@ def gui():
 
 
 
-# the actual game loop 
-while not won_or_tie:
-    # determines the player turn
-    if turn % 2 == 0:
-        print("Player 1's turn (X)")
-        # print the next large grid
-        print(f"Next large grid: {next_large_grid}")
+# # the actual game loop 
+# while not won_or_tie:
+#     # determines the player turn
+#     if turn % 2 == 0:
+#         print("Player 1's turn (X)")
+#         # print the next large grid
+#         print(f"Next large grid: {next_large_grid}")
         
-        print(large_grid_state)
-        player = human1
+#         print(large_grid_state)
+#         player = human1
         
-        # get the large grid input
-        if next_large_grid == None:
-            selected_grid = get_large_grid_input()
-        else:
-            selected_grid = next_large_grid
+#         # get the large grid input
+#         if next_large_grid == None:
+#             selected_grid = get_large_grid_input()
+#         else:
+#             selected_grid = next_large_grid
         
         
-        # get the small grid input
-        selected_small_grid = get_small_grid_input(selected_grid)
-    else:
-        print("AI Player's turn (O)")
-        print(large_grid_state)
-        player = human2
+#         # get the small grid input
+#         selected_small_grid = get_small_grid_input(selected_grid)
+#     else:
+#         print("AI Player's turn (O)")
+#         print(large_grid_state)
+#         player = human2
         
-        # get the AI's move
-        selected_grid, selected_small_grid = get_ai_move(player, 10, next_large_grid)  # depth adjustable
+#         # get the AI's move
+#         selected_grid, selected_small_grid = get_ai_move(player, 10, next_large_grid)  # depth adjustable
     
-    # update the game state
-    game_state[selected_grid][selected_small_grid] = player
+#     # update the game state
+#     game_state[selected_grid][selected_small_grid] = player
 
-    # check if the small grid has been won
-    small_grid_winner = check_small_grid_win_state(selected_grid)
+#     # check if the small grid has been won
+#     small_grid_winner = check_small_grid_win_state(selected_grid)
 
-    # if the small grid has been won
-    if small_grid_winner != None:
-        printGameState()
-        print(f"Player {small_grid_winner} has won the small grid!")
-        next_large_grid = selected_small_grid
-    else:
-        next_large_grid = selected_small_grid
+#     # if the small grid has been won
+#     if small_grid_winner != None:
+#         printGameState()
+#         print(f"Player {small_grid_winner} has won the small grid!")
+#         next_large_grid = selected_small_grid
+#     else:
+#         next_large_grid = selected_small_grid
 
-    # if the next large grid is already won
-    if large_grid_state[next_large_grid] != None:
-        next_large_grid = None
+#     # if the next large grid is already won
+#     if large_grid_state[next_large_grid] != None:
+#         next_large_grid = None
         
-    # check if the large grid has been won
-    player_won_or_tie = check_large_grid_win_state()
-    if player_won_or_tie != None:
-        won_or_tie = True
-        break
+#     # check if the large grid has been won
+#     player_won_or_tie = check_large_grid_win_state()
+#     if player_won_or_tie != None:
+#         won_or_tie = True
+#         break
     
-    # i want to add the gui here 
+#     # i want to add the gui here 
 
-    # Update the GUI
-    gui()
-
-
-    turn += 1
-    printGameState()
+#     # Update the GUI
+#     gui()
 
 
-
-if player_won_or_tie == "tie":
-    print("The game ended in a tie!")
-else:
-    print(f"Player {player_won_or_tie} has won the game!")
+#     turn += 1
+#     printGameState()
 
 
 
+# if player_won_or_tie == "tie":
+#     print("The game ended in a tie!")
+# else:
+#     print(f"Player {player_won_or_tie} has won the game!")
 
 
+
+
+gui()
         
