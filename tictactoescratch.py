@@ -408,34 +408,34 @@ def block_large_grid_win(player, large_grid):
     # row win check
     for i in range(0, 9, 3):
         if large_grid[i] == large_grid[i+1] == player and large_grid[i+2] == None:
-            score += 800
+            score += 3000
         if large_grid[i] == large_grid[i+2] == player and large_grid[i+1] == None:
-            score += 800
+            score += 3000
         if large_grid[i+1] == large_grid[i+2] == player and large_grid[i] == None:
-            score += 800
+            score += 3000
 
     # column win check
     for i in range(3):
         if large_grid[i] == large_grid[i+3] == player and large_grid[i+6] == None:
-            score += 800
+            score += 3000
         if large_grid[i] == large_grid[i+6] == player and large_grid[i+3] == None:
-            score += 800
+            score += 3000
         if large_grid[i+3] == large_grid[i+6] == player and large_grid[i] == None:
-            score += 800
+            score += 3000
 
     # diagonal win check
     if large_grid[0] == large_grid[4] == player and large_grid[8] == None:
-        score += 800
+        score += 3000
     if large_grid[0] == large_grid[8] == player and large_grid[4] == None:
-        score += 800
+        score += 3000
     if large_grid[4] == large_grid[8] == player and large_grid[0] == None:
-        score += 800
+        score += 3000
     if large_grid[2] == large_grid[4] == player and large_grid[6] == None:
-        score += 800
+        score += 3000
     if large_grid[2] == large_grid[6] == player and large_grid[4] == None:
-        score += 800
+        score += 3000
     if large_grid[4] == large_grid[6] == player and large_grid[2] == None:
-        score += 800
+        score += 3000
 
 
 
@@ -782,7 +782,7 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            depth = 2
+            depth = 6
             player = human2
             grid = next_large_grid
             selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
