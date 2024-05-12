@@ -173,7 +173,7 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
 
     # if the depth is 0, return the score
     if depth == 0:
-        return evaluation(player, board), None
+        return evaluation(player, board, next_large_grid), None
 
     # if it is the player's turn
     if player == "X":
@@ -232,26 +232,119 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
         return minEval, best_move
 
 
+# def minimax(player, board, depth, alpha, beta, next_large_grid):
+#     print("Minimax called with depth:", depth)
+#     print("Current player:", player)
+#     print("Next large grid:", next_large_grid)
+#     print("Current game state:")
+#     print("-----------------------------")
+#     for i in range(0, 9, 3):
+#         for j in range(3):
+#             for k in range(i, i+3):
+#                 print("|", end=" ")
+#                 for l in range(3):
+#                     if game_state[k][3*j+l] == None:
+#                         print(" ", end=" ")
+#                     else:
+#                         print(game_state[k][3*j+l], end=" ")
+#                 print("|", end=" ")
+#             print()
+#         print("-----------------------------")
 
+#     # if the game is over, return the score
+#     won_or_tie_minimax = check_large_grid_win_state()
+#     if won_or_tie_minimax == "X":
+#         print("Game over. X wins!")
+#         return 1, None
+#     elif won_or_tie_minimax == "O":
+#         print("Game over. O wins!")
+#         return -1, None
+#     elif won_or_tie_minimax == "tie":
+#         print("Game over. It's a tie!")
+#         return 0, None
 
-LargeGridweights = [
-    1.4, 1, 1.4,
-    1 , 1.75, 1,
-    1.4, 1, 1.4,
-]
+#     # if the depth is 0, return the score
+#     if depth == 0:
+#         eval_score = evaluation(player, board, next_large_grid)
+#         print("Depth limit reached. Evaluation score:", eval_score)
+#         return eval_score, None
+
+#     # if it is the player's turn
+#     if player == "X":
+#         print("Maximizing player's turn (X)")
+#         maxEval = float("-inf")
+#         best_move = None
+
+#         # if next_large_grid is None, consider all available large grids
+#         if next_large_grid == None:
+#             available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+#         else:
+#             available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
+
+#         print("Available grids:", available_grids)
+
+#         for i in available_grids:
+#             for j in range(9):
+#                 if game_state[i][j] == None:
+#                     game_state[i][j] = player
+#                     new_next_large_grid = j if large_grid_state[j] == None else None
+#                     print("Exploring move: (", i, ",", j, ")")
+#                     eval, _ = minimax("O", board, depth - 1, alpha, beta, new_next_large_grid)
+#                     game_state[i][j] = None
+#                     print("Evaluation score for move (", i, ",", j, "):", eval)
+#                     if eval > maxEval:
+#                         maxEval = eval
+#                         best_move = (i, j)
+#                     alpha = max(alpha, eval)
+#                     if beta <= alpha:
+#                         print("Beta cutoff. Pruning branch.")
+#                         break
+#             if beta <= alpha:
+#                 break
+#         print("Best move for X:", best_move)
+#         print("Max evaluation score:", maxEval)
+#         return maxEval, best_move
+#     else:
+#         print("Minimizing player's turn (O)")
+#         minEval = float("inf")
+#         best_move = None
+
+#         # if next_large_grid is None, consider all available large grids
+#         if next_large_grid == None:
+#             available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+#         else:
+#             available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
+
+#         print("Available grids:", available_grids)
+
+#         for i in available_grids:
+#             for j in range(9):
+#                 if game_state[i][j] == None:
+#                     game_state[i][j] = player
+#                     new_next_large_grid = j if large_grid_state[j] == None else None
+#                     print("Exploring move: (", i, ",", j, ")")
+#                     eval, _ = minimax("X", board, depth - 1, alpha, beta, new_next_large_grid)
+#                     game_state[i][j] = None
+#                     print("Evaluation score for move (", i, ",", j, "):", eval)
+#                     if eval < minEval:
+#                         minEval = eval
+#                         best_move = (i, j)
+#                     beta = min(beta, eval)
+#                     if beta <= alpha:
+#                         print("Alpha cutoff. Pruning branch.")
+#                         break
+#             if beta <= alpha:
+#                 break
+#         print("Best move for O:", best_move)
+#         print("Min evaluation score:", minEval)
+#         return minEval, best_move
+
 
 # LargeGridweights = [
 #  1, 1, 1,
 #     1, 1, 1,
 #     1, 1, 1,
 # ]
-
-
-SmallGridWeights = [
-    0.2,   0.17, 0.2, 
-    0.17, 0.22, 0.17, 
-    0.2,   0.17, 0.2
-]
 
 # SmallGridWeights = [
 #  1, 1, 1,
@@ -261,307 +354,292 @@ SmallGridWeights = [
 
 
 
+LargeGridweights = [
+    1.4, 1, 1.4,
+    1 , 1.75, 1,
+    1.4, 1, 1.4,
+]
+
+SmallGridWeights = [
+    0.2,   0.17, 0.2, 
+    0.17, 0.22, 0.17, 
+    0.2,   0.17, 0.2
+]
 
 
-
-
-def evaluation(player, board):
+def evaluation(player, board, next_large_grid):
     score = 0
 
-    # Evaluate small grid wins
+    # Prioritize sending the opponent to an already won grid
+    score += prioritise_sending_to_already_won_grid(player, board, next_large_grid)
+
+    # Prioritize winning the large grid
+    score += prioritise_large_grid_win(player, board)
+
+    # Block the opponent from winning the large grid
+    score += block_large_grid_win(player, board)
+
+    # Prioritize winning the small grids
     for i in range(9):
-        small_grid = game_state[i]
-        score += evaluate_small_grid_win(player, small_grid)
+        score += prioritise_small_grid_wins(player, game_state[i]) * SmallGridWeights[i]
 
-    # Evaluate small grid blocks
+    # Block the opponent from winning the small grids
     for i in range(9):
-        small_grid = game_state[i]
-        score += evaluate_small_grid_block(player, small_grid)
+        score += block_small_grid_win(player, game_state[i]) * SmallGridWeights[i]
 
-    # Evaluate two in a row in small grids
+    # Prioritize adjacent moves in the large grid
+    score += prioritise_adjacent_moves_large_grid(player, board) * LargeGridweights[4]
+
+    # Prioritize adjacent moves in the small grids
     for i in range(9):
-        small_grid = game_state[i]
-        score += evaluate_two_in_a_row_small_grid(player, small_grid)
-
-    # Evaluate blocking two in a row in small grids
-    for i in range(9):
-        small_grid = game_state[i]
-        score += evaluate_blocking_two_in_a_row_small_grid(player, small_grid)
-
-    # Apply large grid weights to the score
-    weighted_score = 0
-    for i in range(9):
-        weighted_score += score * LargeGridweights[i]
-    score = weighted_score
-
-    # Evaluate large grid win
-    score += evaluate_large_grid_win(player, board)
-
-    # Evaluate large grid block
-    score += evaluate_large_grid_block(player, board)
-
-    # Evaluate two in a row in the large grid
-    score += evaluate_two_in_a_row_Large_grid(player, board)
-
-    # Evaluate blocking two in a row in the large grid
-    score += evaluate_blocking_two_in_a_row_Large_grid(player, board)
+        score += prioritise_adjacent_moves_small_grid(player, game_state[i]) * SmallGridWeights[i]
 
     return score
 
-def evaluate_blocking_two_in_a_row_small_grid(player, small_grid):
-    opponent = 'O' if player == 'X' else 'X'
-    # Check rows
+
+def block_large_grid_win(player, large_grid):
+    # we want to block the player from winning the large grid
+    # if there is a move that blocks the player, add a score of 800
+
     score = 0
+
+    # large_grid is a 9 element array
+    
+    # row win check
     for i in range(0, 9, 3):
-        if small_grid[i] == opponent and small_grid[i+1] == None and small_grid[i+2] == None:
-            score += 30
-            score*=SmallGridWeights[i+1]
-        
+        if large_grid[i] == large_grid[i+1] == player and large_grid[i+2] == None:
+            score += 800
+        if large_grid[i] == large_grid[i+2] == player and large_grid[i+1] == None:
+            score += 800
+        if large_grid[i+1] == large_grid[i+2] == player and large_grid[i] == None:
+            score += 800
 
-    # Check columns
+    # column win check
     for i in range(3):
-        if small_grid[i] == opponent and small_grid[i+3] == None and small_grid[i+6] == None:
-            score += 30
-            score*=SmallGridWeights[i+3]
+        if large_grid[i] == large_grid[i+3] == player and large_grid[i+6] == None:
+            score += 800
+        if large_grid[i] == large_grid[i+6] == player and large_grid[i+3] == None:
+            score += 800
+        if large_grid[i+3] == large_grid[i+6] == player and large_grid[i] == None:
+            score += 800
 
-    # Check diagonals
-    if small_grid[0] == opponent and small_grid[4] == None and small_grid[8] == None:
-        score += 30
-        score*=SmallGridWeights[4]
+    # diagonal win check
+    if large_grid[0] == large_grid[4] == player and large_grid[8] == None:
+        score += 800
+    if large_grid[0] == large_grid[8] == player and large_grid[4] == None:
+        score += 800
+    if large_grid[4] == large_grid[8] == player and large_grid[0] == None:
+        score += 800
+    if large_grid[2] == large_grid[4] == player and large_grid[6] == None:
+        score += 800
+    if large_grid[2] == large_grid[6] == player and large_grid[4] == None:
+        score += 800
+    if large_grid[4] == large_grid[6] == player and large_grid[2] == None:
+        score += 800
 
-    if small_grid[2] == opponent and small_grid[4] == None and small_grid[6] == None:
-        score += 30
-        score*=SmallGridWeights[4]
+
 
     return score
 
-def evaluate_blocking_two_in_a_row_Large_grid(player, Large_grid):
-    opponent = 'O' if player == 'X' else 'X'
-    # Check rows
-    score = 0
-    for i in range(0, 9, 3):
-        if Large_grid[i] == opponent and Large_grid[i+1] == None and Large_grid[i+2] == None:
-            score += 200
-        
+# this is overall win 
+def prioritise_large_grid_win(player, large_grid):
+    # we want to help the player win in the large grid
+    # if there is a move that helps the player win, add a score of 10000
 
-    # Check columns
-    for i in range(3):
-        if Large_grid[i] == opponent and Large_grid[i+3] == None and Large_grid[i+6] == None:
-            score += 200
-
-    # Check diagonals
-    if Large_grid[0] == opponent and Large_grid[4] == None and Large_grid[8] == None:
-        score += 200
-
-    if Large_grid[2] == opponent and Large_grid[4] == None and Large_grid[6] == None:
-        score += 200
-
-    return score
-
-def evaluate_two_in_a_row_small_grid(player, small_grid):
-    # Check rows
-    score = 0
-    for i in range(0, 9, 3):
-        if small_grid[i] == player and small_grid[i+1] == None and small_grid[i+2] == None:
-            score += 30
-            score*=SmallGridWeights[i + 1]
-        
-
-    # Check columns
-    for i in range(3):
-        if small_grid[i] == player and small_grid[i+3] == None and small_grid[i+6] == None:
-            score += 30
-            score*=SmallGridWeights[i+3]
-
-    # Check diagonals
-    if small_grid[0] == player and small_grid[4] == None and small_grid[8] == None:
-        score += 30
-        score*=SmallGridWeights[4]
-
-    if small_grid[2] == player and small_grid[4] == None and small_grid[6] == None:
-        score += 30
-        score*=SmallGridWeights[4]
-
-    return score
-
-def evaluate_two_in_a_row_Large_grid(player, Large_grid):
-    # Check rows
-    score = 0
-    for i in range(0, 9, 3):
-        if Large_grid[i] == player and Large_grid[i+1] == None and Large_grid[i+2] == None:
-            score += 300
-        
-
-    # Check columns
-    for i in range(3):
-        if Large_grid[i] == player and Large_grid[i+3] == None and Large_grid[i+6] == None:
-            score += 300
-
-    # Check diagonals
-    if Large_grid[0] == player and Large_grid[4] == None and Large_grid[8] == None:
-        score += 300
-
-    if Large_grid[2] == player and Large_grid[4] == None and Large_grid[6] == None:
-        score += 300
-
-    return score
-
-
-def evaluate_large_grid_win(player, large_grid):
     score = 0
 
-    # Check rows
+    # large_grid is a 9 element array
+
+    # row win check
     for i in range(0, 9, 3):
         if large_grid[i] == large_grid[i+1] == player and large_grid[i+2] == None:
             score += 10000
-        elif large_grid[i] == large_grid[i+2] == player and large_grid[i+1] == None:
+        if large_grid[i] == large_grid[i+2] == player and large_grid[i+1] == None:
             score += 10000
-        elif large_grid[i+1] == large_grid[i+2] == player and large_grid[i] == None:
+        if large_grid[i+1] == large_grid[i+2] == player and large_grid[i] == None:
             score += 10000
 
-    # Check columns
+    # column win check
     for i in range(3):
         if large_grid[i] == large_grid[i+3] == player and large_grid[i+6] == None:
             score += 10000
-        elif large_grid[i] == large_grid[i+6] == player and large_grid[i+3] == None:
+        if large_grid[i] == large_grid[i+6] == player and large_grid[i+3] == None:
             score += 10000
-        elif large_grid[i+3] == large_grid[i+6] == player and large_grid[i] == None:
+        if large_grid[i+3] == large_grid[i+6] == player and large_grid[i] == None:
             score += 10000
 
-    # Check diagonals
+    # diagonal win check
     if large_grid[0] == large_grid[4] == player and large_grid[8] == None:
         score += 10000
-    elif large_grid[0] == large_grid[8] == player and large_grid[4] == None:
+    if large_grid[0] == large_grid[8] == player and large_grid[4] == None:
         score += 10000
-    elif large_grid[4] == large_grid[8] == player and large_grid[0] == None:
+    if large_grid[4] == large_grid[8] == player and large_grid[0] == None:
         score += 10000
-
     if large_grid[2] == large_grid[4] == player and large_grid[6] == None:
         score += 10000
-    elif large_grid[2] == large_grid[6] == player and large_grid[4] == None:
+    if large_grid[2] == large_grid[6] == player and large_grid[4] == None:
         score += 10000
-    elif large_grid[4] == large_grid[6] == player and large_grid[2] == None:
+    if large_grid[4] == large_grid[6] == player and large_grid[2] == None:
         score += 10000
 
-    return score 
+    return score
 
-# this function checks if placing a move in a small grid will result in a win
-def evaluate_small_grid_win(player, small_grid):
+def block_small_grid_win(player, small_grid):
+    # we want to block the player from winning the small grid
+    # if there is a move that blocks the player, add a score of 800
+
     score = 0
 
-    # Check rows
+    # small_grid is a 9 element array
+    
+    # row win check
+    for i in range(0, 9, 3):
+        if small_grid[i] == small_grid[i+1] == player and small_grid[i+2] == None:
+            score += 80
+        if small_grid[i] == small_grid[i+2] == player and small_grid[i+1] == None:
+            score += 80
+        if small_grid[i+1] == small_grid[i+2] == player and small_grid[i] == None:
+            score += 80
+
+    # column win check
+    for i in range(3):
+        if small_grid[i] == small_grid[i+3] == player and small_grid[i+6] == None:
+            score += 80
+        if small_grid[i] == small_grid[i+6] == player and small_grid[i+3] == None:
+            score += 80
+        if small_grid[i+3] == small_grid[i+6] == player and small_grid[i] == None:
+            score += 80
+
+    # diagonal win check
+    if small_grid[0] == small_grid[4] == player and small_grid[8] == None:
+        score += 80
+    if small_grid[0] == small_grid[8] == player and small_grid[4] == None:
+        score += 80
+    if small_grid[4] == small_grid[8] == player and small_grid[0] == None:
+        score += 80
+    if small_grid[2] == small_grid[4] == player and small_grid[6] == None:
+        score += 80
+    if small_grid[2] == small_grid[6] == player and small_grid[4] == None:
+        score += 80
+    if small_grid[4] == small_grid[6] == player and small_grid[2] == None:
+        score += 80
+
+    return score
+
+def prioritise_small_grid_wins(player, small_grid):
+    # we want to help the player win in the small grid
+    # if there is a move that helps the player win, add a score of 100
+
+    score = 0
+
+    # small_grid is a 9 element array
+
+    # row win check
     for i in range(0, 9, 3):
         if small_grid[i] == small_grid[i+1] == player and small_grid[i+2] == None:
             score += 100
-            score*=SmallGridWeights[i+1]
-        
+        if small_grid[i] == small_grid[i+2] == player and small_grid[i+1] == None:
+            score += 100
+        if small_grid[i+1] == small_grid[i+2] == player and small_grid[i] == None:
+            score += 100
 
-    # Check columns
+    # column win check
     for i in range(3):
         if small_grid[i] == small_grid[i+3] == player and small_grid[i+6] == None:
             score += 100
-            score*=SmallGridWeights[i+3]
+        if small_grid[i] == small_grid[i+6] == player and small_grid[i+3] == None:
+            score += 100
+        if small_grid[i+3] == small_grid[i+6] == player and small_grid[i] == None:
+            score += 100
 
-    # Check diagonals
+    # diagonal win check
     if small_grid[0] == small_grid[4] == player and small_grid[8] == None:
         score += 100
-        score*=SmallGridWeights[4]
-
+    if small_grid[0] == small_grid[8] == player and small_grid[4] == None:
+        score += 100
+    if small_grid[4] == small_grid[8] == player and small_grid[0] == None:
+        score += 100
     if small_grid[2] == small_grid[4] == player and small_grid[6] == None:
         score += 100
-        score*=SmallGridWeights[4]
+    if small_grid[2] == small_grid[6] == player and small_grid[4] == None:
+        score += 100
+    if small_grid[4] == small_grid[6] == player and small_grid[2] == None:
+        score += 100
 
     return score
 
-# this function checks if placing a move in a small grid will block an opponents win
-def evaluate_small_grid_block(player, small_grid):
-    score = 0
-    opponent = 'O' if player == 'X' else 'X'
 
+def prioritise_sending_to_already_won_grid(player, large_grid, next_large_grid):
+    score = 0
+
+    if next_large_grid is not None:
+        score += 50
+
+    return score
+
+def prioritise_adjacent_moves_large_grid(player, large_grid):
+    score = 0
+    
     # Check rows
     for i in range(0, 9, 3):
-        if small_grid[i] == small_grid[i+1] == opponent and small_grid[i+2] == None:
-            score += 90
-            score*=SmallGridWeights[i+2]
-        elif small_grid[i] == small_grid[i+2] == opponent and small_grid[i+1] == None:
-            score += 90
-            score*=SmallGridWeights[i+1]
-        elif small_grid[i+1] == small_grid[i+2] == opponent and small_grid[i] == None:
-            score += 90
-            score*=SmallGridWeights[i]
-
+        if large_grid[i] == player and large_grid[i+1] == None:
+            score += 100
+        if large_grid[i+1] == player and large_grid[i+2] == None:
+            score += 100
+    
     # Check columns
     for i in range(3):
-        if small_grid[i] == small_grid[i+3] == opponent and small_grid[i+6] == None:
-            score*=SmallGridWeights[i+6]
-        elif small_grid[i] == small_grid[i+6] == opponent and small_grid[i+3] == None:
-            score*=SmallGridWeights[i+3]
-        elif small_grid[i+3] == small_grid[i+6] == opponent and small_grid[i] == None:
-            score*=SmallGridWeights[i]
-
+        if large_grid[i] == player and large_grid[i+3] == None:
+            score += 100
+        if large_grid[i+3] == player and large_grid[i+6] == None:
+            score += 100
+    
     # Check diagonals
-    if small_grid[0] == small_grid[4] == opponent and small_grid[8] == None:
-        score += 90
-        score*=SmallGridWeights[8]
-    elif small_grid[0] == small_grid[8] == opponent and small_grid[4] == None:
-        score += 90
-        score*=SmallGridWeights[4]
-    elif small_grid[4] == small_grid[8] == opponent and small_grid[0] == None:
-        score += 90
-        score*=SmallGridWeights[0]
-
-    if small_grid[2] == small_grid[4] == opponent and small_grid[6] == None:
-        score += 90
-        score*=SmallGridWeights[6]
-    elif small_grid[2] == small_grid[6] == opponent and small_grid[4] == None:
-        score += 90
-        score*=SmallGridWeights[4]
-    elif small_grid[4] == small_grid[6] == opponent and small_grid[2] == None:
-        score += 90
-        score*=SmallGridWeights[2]
-
+    if large_grid[0] == player and large_grid[4] == None:
+        score += 100
+    if large_grid[4] == player and large_grid[8] == None:
+        score += 100
+    if large_grid[2] == player and large_grid[4] == None:
+        score += 100
+    if large_grid[4] == player and large_grid[6] == None:
+        score += 100
+    
     return score
 
-
-# this code will check if placing a move in the big grid will block the opponent from winning
-def evaluate_large_grid_block(player, board):
+def prioritise_adjacent_moves_small_grid(player, small_grid):
     score = 0
-    opponent = 'O' if player == 'X' else 'X'
-
+    
     # Check rows
     for i in range(0, 9, 3):
-        if board[i] == board[i+1] == opponent and board[i+2] == None:
-            score += 900
-        elif board[i] == board[i+2] == opponent and board[i+1] == None:
-            score += 900
-        elif board[i+1] == board[i+2] == opponent and board[i] == None:
-            score += 900
-
+        if small_grid[i] == player and small_grid[i+1] == None:
+            score += 10
+        if small_grid[i+1] == player and small_grid[i+2] == None:
+            score += 10
+    
     # Check columns
     for i in range(3):
-        if board[i] == board[i+3] == opponent and board[i+6] == None:
-            score += 900
-        elif board[i] == board[i+6] == opponent and board[i+3] == None:
-            score += 900
-        elif board[i+3] == board[i+6] == opponent and board[i] == None:
-            score += 900
-
+        if small_grid[i] == player and small_grid[i+3] == None:
+            score += 10
+        if small_grid[i+3] == player and small_grid[i+6] == None:
+            score += 10
+    
     # Check diagonals
-    if board[0] == board[4] == opponent and board[8] == None:
-        score += 900
-    elif board[0] == board[8] == opponent and board[4] == None:
-        score += 900
-    elif board[4] == board[8] == opponent and board[0] == None:
-        score += 900
-
-    if board[2] == board[4] == opponent and board[6] == None:
-        score += 900
-    elif board[2] == board[6] == opponent and board[4] == None:
-        score += 900
-    elif board[4] == board[6] == opponent and board[2] == None:
-        score += 900
-
+    if small_grid[0] == player and small_grid[4] == None:
+        score += 10
+    if small_grid[4] == player and small_grid[8] == None:
+        score += 10
+    if small_grid[2] == player and small_grid[4] == None:
+        score += 10
+    if small_grid[4] == player and small_grid[6] == None:
+        score += 10
+    
     return score
+
+
+
+
+
+
 
 # 0 1 2
 # 3 4 5
@@ -704,7 +782,7 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            depth = 6
+            depth = 2
             player = human2
             grid = next_large_grid
             selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
