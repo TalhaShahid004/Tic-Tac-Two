@@ -466,28 +466,6 @@ def evaluate_small_grid_block(player, small_grid):
 
     return score
 
-# this evaluation will check if the board has been won by the AI player
-def evaluate_large_grid_win(player, board):
-    score = 0
-
-    # Check rows
-    for i in range(0, 9, 3):
-        if board[i] == board[i+1] == board[i+2] == player:
-            score += 1000
-
-    # Check columns
-    for i in range(3):
-        if board[i] == board[i+3] == board[i+6] == player:
-            score += 1000
-
-    # Check diagonals
-    if board[0] == board[4] == board[8] == player:
-        score += 1000
-
-    if board[2] == board[4] == board[6] == player:
-        score += 1000
-
-    return score
 
 # this code will check if placing a move in the big grid will block the opponent from winning
 def evaluate_large_grid_block(player, board):
