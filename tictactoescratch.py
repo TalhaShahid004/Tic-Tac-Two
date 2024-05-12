@@ -180,18 +180,19 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
         # we want to maximize the score
         maxEval = float("-inf")
         best_move = None
-        
+
         # if next_large_grid is None, consider all available large grids
         if next_large_grid == None:
             available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
         else:
             available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
-        
+
         for i in available_grids:
             for j in range(9):
                 if game_state[i][j] == None:
                     game_state[i][j] = player
-                    eval, _ = minimax("O", board, depth - 1, alpha, beta, j)
+                    new_next_large_grid = j if large_grid_state[j] == None else None
+                    eval, _ = minimax("O", board, depth - 1, alpha, beta, new_next_large_grid)
                     game_state[i][j] = None
                     if eval > maxEval:
                         maxEval = eval
@@ -206,18 +207,19 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
         # we want to minimize the score
         minEval = float("inf")
         best_move = None
-        
+
         # if next_large_grid is None, consider all available large grids
         if next_large_grid == None:
             available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
         else:
             available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
-        
+
         for i in available_grids:
             for j in range(9):
                 if game_state[i][j] == None:
                     game_state[i][j] = player
-                    eval, _ = minimax("X", board, depth - 1, alpha, beta, j)
+                    new_next_large_grid = j if large_grid_state[j] == None else None
+                    eval, _ = minimax("X", board, depth - 1, alpha, beta, new_next_large_grid)
                     game_state[i][j] = None
                     if eval < minEval:
                         minEval = eval
@@ -229,17 +231,39 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
                 break
         return minEval, best_move
 
+
+
+
 LargeGridweights = [
     1.4, 1, 1.4,
     1 , 1.75, 1,
     1.4, 1, 1.4,
 ]
 
+# LargeGridweights = [
+#  1, 1, 1,
+#     1, 1, 1,
+#     1, 1, 1,
+# ]
+
+
 SmallGridWeights = [
     0.2,   0.17, 0.2, 
     0.17, 0.22, 0.17, 
     0.2,   0.17, 0.2
 ]
+
+# SmallGridWeights = [
+#  1, 1, 1,
+#     1, 1, 1,
+#     1, 1, 1,
+# ]
+
+
+
+
+
+
 
 def evaluation(player, board):
     score = 0
@@ -253,19 +277,36 @@ def evaluation(player, board):
     for i in range(9):
         small_grid = game_state[i]
         score += evaluate_small_grid_block(player, small_grid)
+
+    # Evaluate two in a row in small grids
+    for i in range(9):
+        small_grid = game_state[i]
         score += evaluate_two_in_a_row_small_grid(player, small_grid)
+
+    # Evaluate blocking two in a row in small grids
+    for i in range(9):
+        small_grid = game_state[i]
         score += evaluate_blocking_two_in_a_row_small_grid(player, small_grid)
-        score *= LargeGridweights[i]
-    
+
+    # Apply large grid weights to the score
+    weighted_score = 0
+    for i in range(9):
+        weighted_score += score * LargeGridweights[i]
+    score = weighted_score
+
     # Evaluate large grid win
     score += evaluate_large_grid_win(player, board)
 
     # Evaluate large grid block
     score += evaluate_large_grid_block(player, board)
-    score += evaluate_blocking_two_in_a_row_Large_grid(player, board)
-    score += evaluate_two_in_a_row_Large_grid(player, board)
-    return score
 
+    # Evaluate two in a row in the large grid
+    score += evaluate_two_in_a_row_Large_grid(player, board)
+
+    # Evaluate blocking two in a row in the large grid
+    score += evaluate_blocking_two_in_a_row_Large_grid(player, board)
+
+    return score
 
 def evaluate_blocking_two_in_a_row_small_grid(player, small_grid):
     opponent = 'O' if player == 'X' else 'X'
@@ -372,22 +413,37 @@ def evaluate_large_grid_win(player, large_grid):
     # Check rows
     for i in range(0, 9, 3):
         if large_grid[i] == large_grid[i+1] == player and large_grid[i+2] == None:
-            score += 1000
-        
+            score += 10000
+        elif large_grid[i] == large_grid[i+2] == player and large_grid[i+1] == None:
+            score += 10000
+        elif large_grid[i+1] == large_grid[i+2] == player and large_grid[i] == None:
+            score += 10000
 
     # Check columns
     for i in range(3):
         if large_grid[i] == large_grid[i+3] == player and large_grid[i+6] == None:
-            score += 1000
+            score += 10000
+        elif large_grid[i] == large_grid[i+6] == player and large_grid[i+3] == None:
+            score += 10000
+        elif large_grid[i+3] == large_grid[i+6] == player and large_grid[i] == None:
+            score += 10000
 
     # Check diagonals
     if large_grid[0] == large_grid[4] == player and large_grid[8] == None:
-        score += 1000
+        score += 10000
+    elif large_grid[0] == large_grid[8] == player and large_grid[4] == None:
+        score += 10000
+    elif large_grid[4] == large_grid[8] == player and large_grid[0] == None:
+        score += 10000
 
     if large_grid[2] == large_grid[4] == player and large_grid[6] == None:
-        score += 1000
+        score += 10000
+    elif large_grid[2] == large_grid[6] == player and large_grid[4] == None:
+        score += 10000
+    elif large_grid[4] == large_grid[6] == player and large_grid[2] == None:
+        score += 10000
 
-    return score
+    return score 
 
 # this function checks if placing a move in a small grid will result in a win
 def evaluate_small_grid_win(player, small_grid):
@@ -648,7 +704,7 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            depth = 3
+            depth = 6
             player = human2
             grid = next_large_grid
             selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
