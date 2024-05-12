@@ -1,518 +1,893 @@
+import customtkinter as ctk
 
-from tkinter import messagebox
-from customtkinter import *
+# ultimate tic tac toe
 
-# Button class
-
-class Button(CTkButton):
-    #default constructor
-    def __init__(self, master, on_click):
-        super().__init__(master, text="", width=50, height=50, corner_radius=1)  # dimensions
-        # adds the on_click method to the button
-        self.configure(command=on_click)
-
-    def mark(self, text, color):  # method for coloring and marking the button and being written on
-        self.configure(text=text, fg_color=color, text_color="#FFFFFF")
+# I will use a 2d array for the game logic
+# Initialise an empty board
+game_state = [[None for i in range(9)] for j in range(9)]
+# print(game_state)
 
 
-# Small 3x3 Grid class
-class smallGrid(CTkFrame):
-    # default constructor
+def printGameState():
+    print("Ultimate Tic Tac Toe Board:")
+
+    print("-----------------------------")
+    
+    for i in range(0, 9, 3):
+        for j in range(3):
+            for k in range(i, i+3):
+                print("|", end=" ")
+                for l in range(3):
+                    if game_state[k][3*j+l] == None:
+                        print(" ", end=" ")
+                    else:
+                        print(game_state[k][3*j+l], end=" ")
+                print("|", end=" ")
+            print()
+        print("-----------------------------")
+
+# can return X, 0, tie or None
+def check_small_grid_win_state(selected_grid):
+    for i in range(3):
+        # check for a row win
+        if game_state[selected_grid][3*i] == game_state[selected_grid][3*i+1] == game_state[selected_grid][3*i+2] != None:
+            # update the large grid state
+            large_grid_state[selected_grid] = game_state[selected_grid][3*i]
+            
+            # return the winner
+            return game_state[selected_grid][3*i]
+        
+        # check for a column win
+        if game_state[selected_grid][i] == game_state[selected_grid][i+3] == game_state[selected_grid][i+6] != None:
+            # update the large grid state
+            large_grid_state[selected_grid] = game_state[selected_grid][i]
+            
+            # return the winner
+            return game_state[selected_grid][i]
+        
+    # check for a diagonal win
+    if game_state[selected_grid][0] == game_state[selected_grid][4] == game_state[selected_grid][8] != None:
+        # update the large grid state
+        large_grid_state[selected_grid] = game_state[selected_grid][0]
+
+        # return the winner
+        return game_state[selected_grid][0]
+    
+    if game_state[selected_grid][2] == game_state[selected_grid][4] == game_state[selected_grid][6] != None:
+        # update the large grid state
+        large_grid_state[selected_grid] = game_state[selected_grid][2]
+
+        # return the winner
+        return game_state[selected_grid][2]
+    
+    # check for a tie
+    count = 0
+    for i in range(9):
+        if game_state[selected_grid][i] != None:
+            count += 1
+    
+    if count == 9:
+        # update the large grid state to indicate a tie
+        large_grid_state[selected_grid] = "tie"
+        return "tie"
+    
+    # if no one has won and there is no tie
+    return None
+
+def check_large_grid_win_state():
+    # check for a row win
+    for i in range(0, 9, 3):
+        if large_grid_state[i] == large_grid_state[i+1] == large_grid_state[i+2] != None:
+            return large_grid_state[i]
+    
+    # check for a column win
+    for i in range(3):
+        if large_grid_state[i] == large_grid_state[i+3] == large_grid_state[i+6] != None:
+            return large_grid_state[i]
+    
+    # check for a diagonal win
+    if large_grid_state[0] == large_grid_state[4] == large_grid_state[8] != None:
+        return large_grid_state[0]
+    
+    if large_grid_state[2] == large_grid_state[4] == large_grid_state[6] != None:
+        return large_grid_state[2]
+    
+    # check for a tie
+    count = 0
+    for i in range(9):
+        if large_grid_state[i] != None:
+            count += 1
+    
+    if count == 9:
+        return "tie"
+    
+    # if no one has won and there is no tie
+    return None
+
+# def get_large_grid_input():
+    
+#     while True:
+#         # input validation for large grid row
+#         while True:
+#             largeGridRow = input("What is your large grid row? (1-3) ")
+#             if largeGridRow.isdigit() and 1 <= int(largeGridRow) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")
+        
+#         # input validation for large grid column
+#         while True: 
+#             largeGridColumn = input("What is your large grid column? (1-3) ")
+#             if largeGridColumn.isdigit() and 1 <= int(largeGridColumn) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")   
+        
+#         # map the large grid row and column to an index 0-8
+#         selected_grid = 3 * (int(largeGridRow) - 1) + (int(largeGridColumn) - 1)
+        
+#         # if the grid is not won hence it is available
+#         if large_grid_state[selected_grid] == None:
+#             return selected_grid
+#         else:
+#             print("The selected large grid is already won or not available. Please choose another one.")
+
+
+# def get_small_grid_input(selected_grid):
+#     while True:
+#         # input validation for move's row
+#         while True:
+#             rowMove = input("What is your move's row? (1-3) ")
+#             if rowMove.isdigit() and 1 <= int(rowMove) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")   
+
+#         # input validation for move's column
+#         while True:
+#             columnMove = input("What is your move's column? (1-3) ")
+#             if columnMove.isdigit() and 1 <= int(columnMove) <= 3:
+#                 break
+#             else:
+#                 print("Invalid input. Please enter a number between 1 and 3.")   
+        
+#         # map the move's row and column to an index 0-8
+#         small_grid_index = 3 * (int(rowMove) - 1) + (int(columnMove) - 1)
+        
+#         # check if the spot is not already played
+#         if game_state[selected_grid][small_grid_index] == None:
+#             return small_grid_index
+#         else:
+#             print("That spot is already played. Please choose another one.")
+
+# takes in the player/turn, the board, depth, and alpha and beta values
+def minimax(player, board, depth, alpha, beta, next_large_grid):
+    # if the game is over, return the score
+    won_or_tie_minimax = check_large_grid_win_state()
+    if won_or_tie_minimax == "X":
+        return 1, None
+    elif won_or_tie_minimax == "O":
+        return -1, None
+    elif won_or_tie_minimax == "tie":
+        return 0, None
+
+    # if the depth is 0, return the score
+    if depth == 0:
+        return evaluation(player, board), None
+
+    # if it is the player's turn
+    if player == "X":
+        # we want to maximize the score
+        maxEval = float("-inf")
+        best_move = None
+
+        # if next_large_grid is None, consider all available large grids
+        if next_large_grid == None:
+            available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+        else:
+            available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
+
+        for i in available_grids:
+            for j in range(9):
+                if game_state[i][j] == None:
+                    game_state[i][j] = player
+                    new_next_large_grid = j if large_grid_state[j] == None else None
+                    eval, _ = minimax("O", board, depth - 1, alpha, beta, new_next_large_grid)
+                    game_state[i][j] = None
+                    if eval > maxEval:
+                        maxEval = eval
+                        best_move = (i, j)
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break
+            if beta <= alpha:
+                break
+        return maxEval, best_move
+    else:
+        # we want to minimize the score
+        minEval = float("inf")
+        best_move = None
+
+        # if next_large_grid is None, consider all available large grids
+        if next_large_grid == None:
+            available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+        else:
+            available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
+
+        for i in available_grids:
+            for j in range(9):
+                if game_state[i][j] == None:
+                    game_state[i][j] = player
+                    new_next_large_grid = j if large_grid_state[j] == None else None
+                    eval, _ = minimax("X", board, depth - 1, alpha, beta, new_next_large_grid)
+                    game_state[i][j] = None
+                    if eval < minEval:
+                        minEval = eval
+                        best_move = (i, j)
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break
+            if beta <= alpha:
+                break
+        return minEval, best_move
+
+
+
+
+LargeGridweights = [
+    1.4, 1, 1.4,
+    1 , 1.75, 1,
+    1.4, 1, 1.4,
+]
+
+# LargeGridweights = [
+#  1, 1, 1,
+#     1, 1, 1,
+#     1, 1, 1,
+# ]
+
+
+SmallGridWeights = [
+    0.2,   0.17, 0.2, 
+    0.17, 0.22, 0.17, 
+    0.2,   0.17, 0.2
+]
+
+# SmallGridWeights = [
+#  1, 1, 1,
+#     1, 1, 1,
+#     1, 1, 1,
+# ]
+
+
+
+
+
+
+
+def evaluation(player, board):
+    score = 0
+
+    # Evaluate small grid wins
+    for i in range(9):
+        small_grid = game_state[i]
+        score += evaluate_small_grid_win(player, small_grid)
+
+    # Evaluate small grid blocks
+    for i in range(9):
+        small_grid = game_state[i]
+        score += evaluate_small_grid_block(player, small_grid)
+
+    # Evaluate two in a row in small grids
+    for i in range(9):
+        small_grid = game_state[i]
+        score += evaluate_two_in_a_row_small_grid(player, small_grid)
+
+    # Evaluate blocking two in a row in small grids
+    for i in range(9):
+        small_grid = game_state[i]
+        score += evaluate_blocking_two_in_a_row_small_grid(player, small_grid)
+
+    # Apply large grid weights to the score
+    weighted_score = 0
+    for i in range(9):
+        weighted_score += score * LargeGridweights[i]
+    score = weighted_score
+
+    # Evaluate large grid win
+    score += evaluate_large_grid_win(player, board)
+
+    # Evaluate large grid block
+    score += evaluate_large_grid_block(player, board)
+
+    # Evaluate two in a row in the large grid
+    score += evaluate_two_in_a_row_Large_grid(player, board)
+
+    # Evaluate blocking two in a row in the large grid
+    score += evaluate_blocking_two_in_a_row_Large_grid(player, board)
+
+    return score
+
+def evaluate_blocking_two_in_a_row_small_grid(player, small_grid):
+    opponent = 'O' if player == 'X' else 'X'
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if small_grid[i] == opponent and small_grid[i+1] == None and small_grid[i+2] == None:
+            score += 30
+            score*=SmallGridWeights[i+1]
+        
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == opponent and small_grid[i+3] == None and small_grid[i+6] == None:
+            score += 30
+            score*=SmallGridWeights[i+3]
+
+    # Check diagonals
+    if small_grid[0] == opponent and small_grid[4] == None and small_grid[8] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    if small_grid[2] == opponent and small_grid[4] == None and small_grid[6] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    return score
+
+def evaluate_blocking_two_in_a_row_Large_grid(player, Large_grid):
+    opponent = 'O' if player == 'X' else 'X'
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if Large_grid[i] == opponent and Large_grid[i+1] == None and Large_grid[i+2] == None:
+            score += 200
+        
+
+    # Check columns
+    for i in range(3):
+        if Large_grid[i] == opponent and Large_grid[i+3] == None and Large_grid[i+6] == None:
+            score += 200
+
+    # Check diagonals
+    if Large_grid[0] == opponent and Large_grid[4] == None and Large_grid[8] == None:
+        score += 200
+
+    if Large_grid[2] == opponent and Large_grid[4] == None and Large_grid[6] == None:
+        score += 200
+
+    return score
+
+def evaluate_two_in_a_row_small_grid(player, small_grid):
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if small_grid[i] == player and small_grid[i+1] == None and small_grid[i+2] == None:
+            score += 30
+            score*=SmallGridWeights[i + 1]
+        
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == player and small_grid[i+3] == None and small_grid[i+6] == None:
+            score += 30
+            score*=SmallGridWeights[i+3]
+
+    # Check diagonals
+    if small_grid[0] == player and small_grid[4] == None and small_grid[8] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    if small_grid[2] == player and small_grid[4] == None and small_grid[6] == None:
+        score += 30
+        score*=SmallGridWeights[4]
+
+    return score
+
+def evaluate_two_in_a_row_Large_grid(player, Large_grid):
+    # Check rows
+    score = 0
+    for i in range(0, 9, 3):
+        if Large_grid[i] == player and Large_grid[i+1] == None and Large_grid[i+2] == None:
+            score += 300
+        
+
+    # Check columns
+    for i in range(3):
+        if Large_grid[i] == player and Large_grid[i+3] == None and Large_grid[i+6] == None:
+            score += 300
+
+    # Check diagonals
+    if Large_grid[0] == player and Large_grid[4] == None and Large_grid[8] == None:
+        score += 300
+
+    if Large_grid[2] == player and Large_grid[4] == None and Large_grid[6] == None:
+        score += 300
+
+    return score
+
+
+def evaluate_large_grid_win(player, large_grid):
+    score = 0
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if large_grid[i] == large_grid[i+1] == player and large_grid[i+2] == None:
+            score += 10000
+        elif large_grid[i] == large_grid[i+2] == player and large_grid[i+1] == None:
+            score += 10000
+        elif large_grid[i+1] == large_grid[i+2] == player and large_grid[i] == None:
+            score += 10000
+
+    # Check columns
+    for i in range(3):
+        if large_grid[i] == large_grid[i+3] == player and large_grid[i+6] == None:
+            score += 10000
+        elif large_grid[i] == large_grid[i+6] == player and large_grid[i+3] == None:
+            score += 10000
+        elif large_grid[i+3] == large_grid[i+6] == player and large_grid[i] == None:
+            score += 10000
+
+    # Check diagonals
+    if large_grid[0] == large_grid[4] == player and large_grid[8] == None:
+        score += 10000
+    elif large_grid[0] == large_grid[8] == player and large_grid[4] == None:
+        score += 10000
+    elif large_grid[4] == large_grid[8] == player and large_grid[0] == None:
+        score += 10000
+
+    if large_grid[2] == large_grid[4] == player and large_grid[6] == None:
+        score += 10000
+    elif large_grid[2] == large_grid[6] == player and large_grid[4] == None:
+        score += 10000
+    elif large_grid[4] == large_grid[6] == player and large_grid[2] == None:
+        score += 10000
+
+    return score 
+
+# this function checks if placing a move in a small grid will result in a win
+def evaluate_small_grid_win(player, small_grid):
+    score = 0
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if small_grid[i] == small_grid[i+1] == player and small_grid[i+2] == None:
+            score += 100
+            score*=SmallGridWeights[i+1]
+        
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == small_grid[i+3] == player and small_grid[i+6] == None:
+            score += 100
+            score*=SmallGridWeights[i+3]
+
+    # Check diagonals
+    if small_grid[0] == small_grid[4] == player and small_grid[8] == None:
+        score += 100
+        score*=SmallGridWeights[4]
+
+    if small_grid[2] == small_grid[4] == player and small_grid[6] == None:
+        score += 100
+        score*=SmallGridWeights[4]
+
+    return score
+
+# this function checks if placing a move in a small grid will block an opponents win
+def evaluate_small_grid_block(player, small_grid):
+    score = 0
+    opponent = 'O' if player == 'X' else 'X'
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if small_grid[i] == small_grid[i+1] == opponent and small_grid[i+2] == None:
+            score += 90
+            score*=SmallGridWeights[i+2]
+        elif small_grid[i] == small_grid[i+2] == opponent and small_grid[i+1] == None:
+            score += 90
+            score*=SmallGridWeights[i+1]
+        elif small_grid[i+1] == small_grid[i+2] == opponent and small_grid[i] == None:
+            score += 90
+            score*=SmallGridWeights[i]
+
+    # Check columns
+    for i in range(3):
+        if small_grid[i] == small_grid[i+3] == opponent and small_grid[i+6] == None:
+            score*=SmallGridWeights[i+6]
+        elif small_grid[i] == small_grid[i+6] == opponent and small_grid[i+3] == None:
+            score*=SmallGridWeights[i+3]
+        elif small_grid[i+3] == small_grid[i+6] == opponent and small_grid[i] == None:
+            score*=SmallGridWeights[i]
+
+    # Check diagonals
+    if small_grid[0] == small_grid[4] == opponent and small_grid[8] == None:
+        score += 90
+        score*=SmallGridWeights[8]
+    elif small_grid[0] == small_grid[8] == opponent and small_grid[4] == None:
+        score += 90
+        score*=SmallGridWeights[4]
+    elif small_grid[4] == small_grid[8] == opponent and small_grid[0] == None:
+        score += 90
+        score*=SmallGridWeights[0]
+
+    if small_grid[2] == small_grid[4] == opponent and small_grid[6] == None:
+        score += 90
+        score*=SmallGridWeights[6]
+    elif small_grid[2] == small_grid[6] == opponent and small_grid[4] == None:
+        score += 90
+        score*=SmallGridWeights[4]
+    elif small_grid[4] == small_grid[6] == opponent and small_grid[2] == None:
+        score += 90
+        score*=SmallGridWeights[2]
+
+    return score
+
+
+# this code will check if placing a move in the big grid will block the opponent from winning
+def evaluate_large_grid_block(player, board):
+    score = 0
+    opponent = 'O' if player == 'X' else 'X'
+
+    # Check rows
+    for i in range(0, 9, 3):
+        if board[i] == board[i+1] == opponent and board[i+2] == None:
+            score += 900
+        elif board[i] == board[i+2] == opponent and board[i+1] == None:
+            score += 900
+        elif board[i+1] == board[i+2] == opponent and board[i] == None:
+            score += 900
+
+    # Check columns
+    for i in range(3):
+        if board[i] == board[i+3] == opponent and board[i+6] == None:
+            score += 900
+        elif board[i] == board[i+6] == opponent and board[i+3] == None:
+            score += 900
+        elif board[i+3] == board[i+6] == opponent and board[i] == None:
+            score += 900
+
+    # Check diagonals
+    if board[0] == board[4] == opponent and board[8] == None:
+        score += 900
+    elif board[0] == board[8] == opponent and board[4] == None:
+        score += 900
+    elif board[4] == board[8] == opponent and board[0] == None:
+        score += 900
+
+    if board[2] == board[4] == opponent and board[6] == None:
+        score += 900
+    elif board[2] == board[6] == opponent and board[4] == None:
+        score += 900
+    elif board[4] == board[6] == opponent and board[2] == None:
+        score += 900
+
+    return score
+
+# 0 1 2
+# 3 4 5
+# 6 7 8
+
+# game logic
+
+# sample output check 
+# game_state[0][0] = "X"
+# game_state[0][1] = "X"
+# game_state[0][2] = "X"
+
+# game_state[1][0] = "X"
+# game_state[1][3] = "X"
+# game_state[1][6] = "X"
+
+# game_state[2][0] = "X"
+# game_state[2][4] = "X"
+# game_state[2][8] = "X"
+
+
+
+# sample large grid check
+# large_grid_state[0] = "X"
+
+
+# game logic
+
+# userinput
+won_or_tie = False
+player_won_or_tie = None
+next_large_grid = None  
+large_grid_state = [None for i in range(9)] # None means no one has won
+turn = 0
+
+# printGameState()
+
+human1 = "X"
+human2 = "O"
+
+def get_ai_move(player, depth, next_large_grid):
+    _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
+    if move is None:
+        # If no valid move is found, search for any available move
+        for i in range(9):
+            if large_grid_state[i] == None:
+                for j in range(9):
+                    if game_state[i][j] == None:
+                        return i, j
+    return move
+
+# using custom tkinter, i want to build a gui for the game
+# i have the game state in the variable game_state as a 2d array
+# i will use the game_state to update the gui after each button click
+# the playable large grids will be outlined in yellow, 
+# the playable grid is found in the next_large_grid variable
+# If a large grid has been won, then change the background colours of the buttons to a darker shade of the winning player
+# if there is a tie, then change the background colour of the buttons to grey
+# for human moves 'O', we use dark blue, for AI moves 'X', we use red. 
+# the default colour is blue for the buttons
+
+
+class SmallGrid(ctk.CTkFrame):
     def __init__(self, master, large_row, large_col, on_button_click):
-        # calls the constructor of the parent class
         super().__init__(master)
-
-        # create a variable that shows if the small grid is won or not
-        self.won = False
         self.buttons = []
-        self.on_button_click = on_button_click
         self.large_row = large_row
         self.large_col = large_col
-
+        
         for r in range(3):
-            self.grid_rowconfigure(r, weight=1) # customtkinter method to assigning a slot to put the button in, weight is the size of the gap
+            self.grid_rowconfigure(r, weight=1)
             self.grid_columnconfigure(r, weight=1)
-
             for c in range(3):
-                # create a button with lambda function to pass the row and column of the button
-                button = Button(self, lambda b=r, a=c: self.on_button_click(b, a, self.large_row, self.large_col))
+                button = ctk.CTkButton(self, text="", width=50, height=50, corner_radius=1,
+                                       command=lambda b=r, a=c: on_button_click(b, a, self.large_row, self.large_col))
                 button.grid(row=r, column=c, sticky="nsew")
                 self.buttons.append(button)
 
-    def check_small_grid_win(self):
-        # set grid as a list of the text of the buttons
-        grid = [button.cget("text") for button in self.buttons]
-        # Check if there is a win condition
+def gui():
+    global turn, next_large_grid, won_or_tie, player_won_or_tie
 
-        for i in range(0, 9, 3):
-            # Check rows
-            # If the elements at indices i, i+1, and i+2 are the same (excluding empty cells),
-            # there is a win condition in that row
-            if grid[i] == grid[i + 1] == grid[i + 2] != "":
-                self.won = True
-                return grid[i]
+    turn = 0
+    next_large_grid = None
+    won_or_tie = False
+    player_won_or_tie = None
+    if turn % 2 == 0:
+        player = human1
+    else:
+        player = human2
 
-        for i in range(3):
-            # Check columns
-            # If the elements at indices i, i+3, and i+6 are the same (excluding empty cells),
-            # there is a win condition in that column
-            if grid[i] == grid[i + 3] == grid[i + 6] != "":
-                self.won = True
-                return grid[i]
+    app = ctk.CTk()
+    app.title("Ultimate Tic Tac Toe")
+    app.minsize(400, 400)
+    app.resizable(False, False)
+    
+    grid_frames = []
+    
+    # Create player title
+    turn_label = ctk.CTkLabel(app, text="Player " + player + "'s turn", font=("Arial", 16))
+    turn_label.pack(pady=(20, 0))
+    
+    def on_button_click(row, col, large_row, large_col):
+        global turn, next_large_grid, won_or_tie, player_won_or_tie
 
-        # Check diagonal from top-left to bottom-right
-        # If the elements at indices 0, 4, and 8 are the same (excluding empty cells),
-        # there is a win condition in that diagonal
-        if grid[0] == grid[4] == grid[8] != "":
-            self.won = True
-            return grid[0]
-
-        # Check diagonal from top-right to bottom-left
-        # If the elements at indices 2, 4, and 6 are the same (excluding empty cells),
-        # there is a win condition in that diagonal
-        if grid[2] == grid[4] == grid[6] != "":
-            self.won = True
-            return grid[2]
-
-        # If no win condition is found, return None
-        return None
-
-    # Method to mark the small grid as won
-    def mark_small_grid_win(self, winner):
-        fg = "blue" if winner == 'X' else "red"
-        for i, button in enumerate(self.buttons):
-            if i == 4:
-                button.mark(winner, fg)
-            else:
-                button.mark("", fg)
-
-    def get_small_grid_won(self):
-        return self.won
-
-
-# Large 3x3 Grid class
-class LargeGrid(CTkFrame):
-    def __init__(self,master, on_button_click):
-        super().__init__(master, fg_color="transparent")
-        self.grid_frames = []
-        # create a variable that shows if the large grid is won or not
-        self.wins = [[0, 0, 0],
-                     [0, 0, 0],
-                     [0, 0, 0]]
-
-        # create a 3x3 grid of small grids
-        for i in range(3):
-            self.grid_rowconfigure(i, weight=1)
-            self.grid_columnconfigure(i, weight=1)
-
-            for j in range(3):
-                outer_frame = CTkFrame(self)
-                outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
-
-                grid_frame = smallGrid(outer_frame, i, j, on_button_click)
-                grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
-                self.grid_frames.append(outer_frame)
-
-    def check_large_grid_win(self):
-        for i in range(3):
-            # Check rows
-            # If the elements in the i-th row (self.wins[i][0], self.wins[i][1], self.wins[i][2])
-            # are the same and not equal to 0, there is a win condition in that row
-            if self.wins[i][0] == self.wins[i][1] == self.wins[i][2] != 0:
-                return self.wins[i][0]
-
-            # Check columns
-            # If the elements in the i-th column (self.wins[0][i], self.wins[1][i], self.wins[2][i])
-            # are the same and not equal to 0, there is a win condition in that column
-            if self.wins[0][i] == self.wins[1][i] == self.wins[2][i] != 0:
-                return self.wins[0][i]
-
-        # Check diagonal from top-left to bottom-right
-        # If the elements in the diagonal (self.wins[0][0], self.wins[1][1], self.wins[2][2])
-        # are the same and not equal to 0, there is a win condition in that diagonal
-        if self.wins[0][0] == self.wins[1][1] == self.wins[2][2] != 0:
-            return self.wins[0][0]
-
-        # Check diagonal from top-right to bottom-left
-        # If the elements in the diagonal (self.wins[0][2], self.wins[1][1], self.wins[2][0])
-        # are the same and not equal to 0, there is a win condition in that diagonal
-        if self.wins[0][2] == self.wins[1][1] == self.wins[2][0] != 0:
-            return self.wins[0][2]
-
-        # If no win condition is found, return None
-        return None
-
-    # marks open cells and yellow
-    def update_outline(self, next_row, next_col):
-        # Iterate over each small grid in the large grid
-        for i in range(9):
-            # Calculate the row and column of the current small grid
-            row, col = i // 3, i % 3
-
-            # Check if the next move is not specified (i.e., next_row and next_col are None)
-            if next_row is None or next_col is None:
-                # If the current small grid is not won, highlight it in yellow
-                if self.wins[row][col] == 0:
-                    self.grid_frames[i].configure(fg_color="yellow")
-                else:
-                    # If the current small grid is already won, make it transparent
-                    self.grid_frames[i].configure(fg_color="transparent")
-
-            # Check if the next move is in a small grid that is already won
-            elif self.wins[next_row][next_col] != 0:
-                # If the current small grid is not won, highlight it in yellow
-                if self.wins[row][col] == 0:
-                    self.grid_frames[i].configure(fg_color="yellow")
-                else:
-                    # If the current small grid is already won, make it transparent
-                    self.grid_frames[i].configure(fg_color="transparent")
-
-            # If the next move is in a valid small grid
-            else:
-                # If the current small grid matches the next move's row and column, highlight it in yellow
-                if row == next_row and col == next_col:
-                    self.grid_frames[i].configure(fg_color="yellow")
-                else:
-                    # If the current small grid does not match the next move, make it transparent
-                    self.grid_frames[i].configure(fg_color="transparent")
-
-
-
-
-
-# Game logic class
-class GameManager:
-    def __init__(self):
-        self.turn = 0
-        self.nextLargeGridRow = None
-        self.nextLargeGridCol = None
-
-    # check if the button is already used
-    def check_button_used(self, button, large_row, large_col, large_grid):
-        if button.cget("text") != "":
-            return False
-
-        if large_grid.wins[large_row][large_col] != 0:
-            return False
-
-        return True
-
-    # check if the button is in the correct grid
-    def check_button_large_grid(self, large_row, large_col, large_grid):
-        if self.nextLargeGridRow is None or self.nextLargeGridColumn is None:
-            return True
-
-        if large_grid.wins[self.nextLargeGridRow][self.nextLargeGridColumn] != 0:
-            return large_grid.wins[large_row][large_col] == 0
-
-        return large_row == self.nextLargeGridRow and large_col == self.nextLargeGridColumn
-
-    # method to change the button text
-    def change_button_text(self, button):
-        if self.turn % 2 == 0:
-            button.mark("X", "#4B7BE5")
-        else:
-            button.mark("O", "#F08080")
-
-    # method to check if there is a win on the small grid
-    def check_small_grid_win(self, large_row, large_col, large_grid):
-        # Get the small grid that the button belongs to
-        grid_frame = large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0]
-
-        # Check if there is a win condition in the small grid
-        winner = grid_frame.check_small_grid_win()
-
-        # If there is a win condition, mark the small grid as won
-        if winner:
-            grid_frame.mark_small_grid_win(winner)
-            large_grid.wins[large_row][large_col] = winner
-
-    def show_winner(self, winner):
-        messagebox.showinfo("Game Over", f"Player {winner} wins!")
-
-    def update_turn_label(self, label):
-        if self.turn % 2 == 0:
-            label.configure(text="Player X's turn")
-        else:
-            label.configure(text="Player O's turn")
-
-
-    def on_button_click(self, small_row, small_col, large_row, large_col, button, large_grid, turn_label):
-        if not self.check_button_used(button, large_row, large_col, large_grid) or not self.check_button_large_grid(
-                large_row, large_col, large_grid):
+        if won_or_tie:
             return
 
-        self.change_button_text(button)
-        self.turn += 1
+        selected_grid = large_row * 3 + large_col
+        selected_small_grid = row * 3 + col
 
-        self.nextLargeGridRow = small_row
-        self.nextLargeGridColumn = small_col
-
-        self.check_small_grid_win(large_row, large_col, large_grid)
-        winner = large_grid.check_large_grid_win()
-        if winner:
-            self.show_winner(winner)
+        if next_large_grid is not None and selected_grid != next_large_grid:
             return
 
-        large_grid.update_outline(self.nextLargeGridRow, self.nextLargeGridColumn)
-        self.update_turn_label(turn_label)
+        if game_state[selected_grid][selected_small_grid] is not None:
+            return
 
-    # method to get the state space of the game
-    def get_state_space(self, large_grid):
-        state_space = {
-            'turn': 'X' if self.turn % 2 == 0 else 'O',
-            'next_large_grid': (self.nextLargeGridRow, self.nextLargeGridColumn),  
-            'small_grids': [],
-            'large_grid': large_grid.wins
-        }
+        player = human1 if turn % 2 == 0 else human2
+        game_state[selected_grid][selected_small_grid] = player
 
-        for i in range(9):
-            small_grid = large_grid.grid_frames[i].winfo_children()[0]
-            buttons_state = [button.cget("text") for button in small_grid.buttons]
-            state_space['small_grids'].append(buttons_state)
+        small_grid_winner = check_small_grid_win_state(selected_grid)
 
-        return state_space
-    
-class AIAgent:
-    def __init__(self, player):
-        self.max_depth = 1  # can be changed
-        self.player = player
-
-    # this is the function that will actually be called
-    def get_next_move(self, state_space):
-        # call minimax function
-        _, move = self.minimax(state_space, self.max_depth, float('-inf'), float('inf'), self.player)
-        return move
-
-    def minimax(self, state_space, depth, alpha, beta, player):
-        # terminal conditions
-        # if the game is over, ie x or o wins or tie, return the score
-        if self.is_game_over(state_space):
-            return self.evaluate_state_space(state_space, player), None
-        # if the depth is 0, return the score
-        if depth == 0:
-            return self.evaluate_state_space(state_space, player), None
-
-        # if the current player is maximizing
-        # ai player logic
-        if player == self.player:
-            best_score = float('-inf')
-            best_move = None
-            for move in self.generate_possible_moves(state_space, player):
-                new_state_space = self.make_move(state_space, move, player)
-                score, _ = self.minimax(new_state_space, depth - 1, alpha, beta, 'O' if player == 'X' else 'X')
-                if score > best_score:
-                    best_score = score
-                    best_move = move
-                alpha = max(alpha, best_score)
-                if beta <= alpha:
-                    break
-            return best_score, best_move
+        if small_grid_winner is not None:
+            print(f"Player {small_grid_winner} has won the small grid!")
+            next_large_grid = selected_small_grid
         else:
-            # if the current player is minimizing
-            # human player logic
-            best_score = float('inf')
-            best_move = None
-            for move in self.generate_possible_moves(state_space, player):
-                new_state_space = self.make_move(state_space, move, player)
-                score, _ = self.minimax(new_state_space, depth - 1, alpha, beta, 'X' if player == 'O' else 'O')
-                if score < best_score:
-                    best_score = score
-                    best_move = move
-                beta = min(beta, best_score)
-                if beta <= alpha:
-                    break
-            return best_score, best_move
+            next_large_grid = selected_small_grid
 
+        if large_grid_state[next_large_grid] is not None:
+            next_large_grid = None
+
+        player_won_or_tie = check_large_grid_win_state()
+        if player_won_or_tie is not None:
+            won_or_tie = True
+
+        if won_or_tie:
+            check_game_over()
         
+        turn += 1
+        update_gui()
 
+        if not won_or_tie and turn % 2 != 0:
+            # AI player's turn
+            depth = 6
+            player = human2
+            grid = next_large_grid
+            selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
+            game_state[selected_grid][selected_small_grid] = human2
 
-        
-    def generate_possible_moves(self, state_space, player):
-        possible_moves = []
+            small_grid_winner = check_small_grid_win_state(selected_grid)
 
-        next_large_grid_row, next_large_grid_col = state_space['next_large_grid']
-        if next_large_grid_row is None or next_large_grid_col is None:
-            # whole large grid is open for playing
-            for large_row in range(3):
-                for large_col in range(3):
-                    # make sure the large grid isnt won
-                    if state_space['large_grid'][large_row][large_col] == 0:
-                        for small_row in range(3):
-                            for small_col in range(3):
-                                if state_space['small_grids'][large_row * 3 + large_col][small_row * 3 + small_col] == '':
-                                    possible_moves.append((large_row, large_col, small_row, small_col))
-        else:
-            # if the next large grid is specified, only that one can be played
-            for small_row in range(3):
-                for small_col in range(3):
-                    if state_space['small_grids'][next_large_grid_row * 3 + next_large_grid_col][small_row * 3 + small_col] == '':
-                        possible_moves.append((next_large_grid_row, next_large_grid_col, small_row, small_col))
+            if small_grid_winner is not None:
+                print(f"Player {small_grid_winner} has won the small grid!")
+                next_large_grid = selected_small_grid
+            else:
+                next_large_grid = selected_small_grid
 
-        return possible_moves
+            if large_grid_state[next_large_grid] is not None:
+                next_large_grid = None
 
-    # method to actually make the move
-    def make_move(self, state_space, move, player):
-        new_state_space = state_space.copy()
-        # get the moves details
-        large_row, large_col, small_row, small_col = move
-
-        # update the state space
-        new_state_space['small_grids'][large_row * 3 + large_col][small_row * 3 + small_col] = player
-
-        # update the next large grid
-        new_state_space['next_large_grid'] = (small_row, small_col)
-
-        # update the turn
-        new_state_space['turn'] = 'O' if player == 'X' else 'X'
-
-        return new_state_space
-    
-    def is_game_over(self, state_space):
-        # Check if the game is over based on the current state space
-        # Return True if the game is over, False otherwise
-
-        # Check if the large grid is won as a tic tac toe board
-        for i in range(3):
-            # Check rows
-            if state_space['large_grid'][i][0] == state_space['large_grid'][i][1] == state_space['large_grid'][i][2] != 0:
-                return True
-
-            # Check columns
-            if state_space['large_grid'][0][i] == state_space['large_grid'][1][i] == state_space['large_grid'][2][i] != 0:
-                return True
-        
-        # Check diagonal from top-left to bottom-right
-        if state_space['large_grid'][0][0] == state_space['large_grid'][1][1] == state_space['large_grid'][2][2] != 0:
-            return True
-        
-        # Check diagonal from top-right to bottom-left
-        if state_space['large_grid'][0][2] == state_space['large_grid'][1][1] == state_space['large_grid'][2][0] != 0:
-            return True
-        
+            player_won_or_tie = check_large_grid_win_state()
+            if player_won_or_tie is not None:
+                won_or_tie = True
             
+            if won_or_tie:
+                check_game_over()
+            
+            turn += 1
+            update_gui()
 
+    # Create a 3x3 grid of small grids
+    main_frame = ctk.CTkFrame(app)
+    main_frame.pack(expand=True, fill="both", padx=10, pady=10)
+    
+    for i in range(3):
+        main_frame.grid_rowconfigure(i, weight=1)
+        main_frame.grid_columnconfigure(i, weight=1)
+        for j in range(3):
+            outer_frame = ctk.CTkFrame(main_frame)
+            outer_frame.grid(row=i, column=j, padx=3, pady=3, sticky="nsew")
+            grid_frame = SmallGrid(outer_frame, i, j, on_button_click)
+            grid_frame.pack(expand=True, fill="both", padx=3, pady=3)
+            grid_frames.append(outer_frame)
 
-        return False
+    def check_game_over():
+        global won_or_tie, player_won_or_tie
 
-    def evaluate_state_space(self, state_space, player):
-        score = 0
+        if won_or_tie:
+            if player_won_or_tie == "tie":
+                show_winner_popup("tie")
+            else:
+                show_winner_popup(player_won_or_tie)
 
-        # Evaluate the small grids
-        for large_row in range(3):
-            for large_col in range(3):
-                small_grid = state_space['small_grids'][large_row * 3 + large_col]
+    def show_winner_popup(winner):
+        popup = ctk.CTkToplevel(app)
+        popup.title("Game Over")
+        popup.geometry("300x150")
+        popup.resizable(False, False)
+        popup.transient(app)  # Make the popup window appear on top of the main window
+        popup.grab_set()  # Disable interaction with the main window until the popup is closed
 
-                # Check for winning conditions in the small grid
-                for i in range(3):
-                    # Check rows
-                    if small_grid[i * 3] == small_grid[i * 3 + 1] == small_grid[i * 3 + 2]:
-                        if small_grid[i * 3] == player:
-                            score += 10
-                        elif small_grid[i * 3] != '':
-                            score -= 10
+        if winner == "tie":
+            message = "The game ended in a tie!"
+        else:
+            message = f"Player {winner} has won the game!"
 
-                    # Check columns
-                    if small_grid[i] == small_grid[i + 3] == small_grid[i + 6]:
-                        if small_grid[i] == player:
-                            score += 10
-                        elif small_grid[i] != '':
-                            score -= 10
+        label = ctk.CTkLabel(popup, text=message, font=("Arial", 16))
+        label.pack(expand=True)
 
-                # Check diagonal from top-left to bottom-right
-                if small_grid[0] == small_grid[4] == small_grid[8]:
-                    if small_grid[0] == player:
-                        score += 10
-                    elif small_grid[0] != '':
-                        score -= 10
-
-                # Check diagonal from top-right to bottom-left
-                if small_grid[2] == small_grid[4] == small_grid[6]:
-                    if small_grid[2] == player:
-                        score += 10
-                    elif small_grid[2] != '':
-                        score -= 10
-
-        # Evaluate the large grid
-        for i in range(3):
-            # Check rows
-            if state_space['large_grid'][i][0] == state_space['large_grid'][i][1] == state_space['large_grid'][i][2]:
-                if state_space['large_grid'][i][0] == player:
-                    score += 100
-                elif state_space['large_grid'][i][0] != 0:
-                    score -= 100
-
-            # Check columns
-            if state_space['large_grid'][0][i] == state_space['large_grid'][1][i] == state_space['large_grid'][2][i]:
-                if state_space['large_grid'][0][i] == player:
-                    score += 100
-                elif state_space['large_grid'][0][i] != 0:
-                    score -= 100
-
-        # Check diagonal from top-left to bottom-right
-        if state_space['large_grid'][0][0] == state_space['large_grid'][1][1] == state_space['large_grid'][2][2]:
-            if state_space['large_grid'][0][0] == player:
-                score += 100
-            elif state_space['large_grid'][0][0] != 0:
-                score -= 100
-
-        # Check diagonal from top-right to bottom-left
-        if state_space['large_grid'][0][2] == state_space['large_grid'][1][1] == state_space['large_grid'][2][0]:
-            if state_space['large_grid'][0][2] == player:
-                score += 100
-            elif state_space['large_grid'][0][2] != 0:
-                score -= 100
-
-        return score
-
-# UI and Game class
-class UltimateTicTacToe(CTk):
-    def __init__(self, ai_player=None):
-        super().__init__()
-        self.title("Ultimate Tic Tac Toe")
-        self.minsize(400, 400)
-        self.resizable(False, False)
-
-        self.game_manager = GameManager()
-        self.ai_player = ai_player
-
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-        self.turn_label = CTkLabel(self, text="Player X's turn", font=("Arial", 16))
-        self.turn_label.grid(row=0, column=0, padx=20, pady=(20, 0))
-
-        self.large_grid = LargeGrid(self, self.on_button_click)
-        self.large_grid.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
-
-        self.large_grid.update_outline(None, None)
-
-    def on_button_click(self, small_row, small_col, large_row, large_col):
-        button = self.large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0].buttons[
-            small_row * 3 + small_col]
-        self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid,
-                                          self.turn_label)
-
-        # Access the state space after each button click
-        state_space = self.game_manager.get_state_space(self.large_grid)
-        print("Current State Space:")
-        print(state_space)
-
-        # Check if it's the AI player's turn
-        if self.ai_player is not None and self.game_manager.turn % 2 == (1 if self.ai_player.player == 'O' else 0):
-            # Get the AI agent's move
-            ai_move = self.ai_player.get_next_move(state_space)
-
-            # Perform the AI agent's move
-            if ai_move is not None:
-                large_row, large_col, small_row, small_col = ai_move
-                button = self.large_grid.grid_frames[large_row * 3 + large_col].winfo_children()[0].buttons[
-                    small_row * 3 + small_col]
-                self.game_manager.on_button_click(small_row, small_col, large_row, large_col, button, self.large_grid,
-                                                  self.turn_label)
-
-if __name__ == "__main__":
-    set_appearance_mode("dark")
-    ai_player = AIAgent('O')  # Create an instance of the AIAgent, specifying the player ('X' or 'O')
-    app = UltimateTicTacToe(ai_player=ai_player)
+        button = ctk.CTkButton(popup, text="Close", command=popup.destroy)
+        button.pack(pady=10)
+        
+    def update_gui():
+        for i in range(9):
+            for j in range(9):
+                cell_value = game_state[i][j]
+                small_row = j // 3
+                small_col = j % 3
+                button_index = small_row * 3 + small_col
+                button = grid_frames[i].winfo_children()[0].buttons[button_index]
+                
+                if cell_value == 'X':
+                    button.configure(text='X', fg_color="#4B7BE5")
+                elif cell_value == 'O':
+                    button.configure(text='O', fg_color="#F08080")
+                else:
+                    button.configure(text='', fg_color=ctk.ThemeManager.theme["CTkButton"]["fg_color"])
+        
+        # Highlight playable large grids
+        for i in range(9):
+            if next_large_grid is None or next_large_grid == i:
+                if large_grid_state[i] is None:
+                    grid_frames[i].configure(border_width=2, border_color="yellow")
+                else:
+                    grid_frames[i].configure(border_width=0)
+            else:
+                grid_frames[i].configure(border_width=0)
+        
+        # Update large grid state colors
+        for i in range(9):
+            if large_grid_state[i] == 'X':
+                for button in grid_frames[i].winfo_children()[0].buttons:
+                    button.configure(fg_color="blue")
+            elif large_grid_state[i] == 'O':
+                for button in grid_frames[i].winfo_children()[0].buttons:
+                    button.configure(fg_color="red")
+            elif large_grid_state[i] == 'tie':
+                for button in grid_frames[i].winfo_children()[0].buttons:
+                    button.configure(fg_color="gray")
+    
+    update_gui()
+    
     app.mainloop()
+
+
+
+
+# # the actual game loop 
+# while not won_or_tie:
+#     # determines the player turn
+#     if turn % 2 == 0:
+#         print("Player 1's turn (X)")
+#         # print the next large grid
+#         print(f"Next large grid: {next_large_grid}")
+        
+#         print(large_grid_state)
+#         player = human1
+        
+#         # get the large grid input
+#         if next_large_grid == None:
+#             selected_grid = get_large_grid_input()
+#         else:
+#             selected_grid = next_large_grid
+        
+        
+#         # get the small grid input
+#         selected_small_grid = get_small_grid_input(selected_grid)
+#     else:
+#         print("AI Player's turn (O)")
+#         print(large_grid_state)
+#         player = human2
+        
+#         # get the AI's move
+#         selected_grid, selected_small_grid = get_ai_move(player, 10, next_large_grid)  # depth adjustable
+    
+#     # update the game state
+#     game_state[selected_grid][selected_small_grid] = player
+
+#     # check if the small grid has been won
+#     small_grid_winner = check_small_grid_win_state(selected_grid)
+
+#     # if the small grid has been won
+#     if small_grid_winner != None:
+#         printGameState()
+#         print(f"Player {small_grid_winner} has won the small grid!")
+#         next_large_grid = selected_small_grid
+#     else:
+#         next_large_grid = selected_small_grid
+
+#     # if the next large grid is already won
+#     if large_grid_state[next_large_grid] != None:
+#         next_large_grid = None
+        
+#     # check if the large grid has been won
+#     player_won_or_tie = check_large_grid_win_state()
+#     if player_won_or_tie != None:
+#         won_or_tie = True
+#         break
+    
+#     # i want to add the gui here 
+
+#     # Update the GUI
+#     gui()
+
+
+#     turn += 1
+#     printGameState()
+
+
+
+# if player_won_or_tie == "tie":
+#     print("The game ended in a tie!")
+# else:
+#     print(f"Player {player_won_or_tie} has won the game!")
+
+
+
+
+gui()
+        
