@@ -4,6 +4,8 @@ import customtkinter as ctk
 # I will use a 2d array for the game logic
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
+
+# sample case
 # game_state = [["X", "O", None, None, "O", None,None, "O", None],
 #             [None, None, "X",None, "X", None,"X", None, None],
 #             ["O", None, "X",None, "X", None,"X", None, None],
@@ -15,6 +17,7 @@ game_state = [[None for i in range(9)] for j in range(9)]
 #             ["O", "O", "X","O", None, None,None, None, None]
 #             ]
 
+maindepth = 5 # change the depth here 
 
 large_grid_state = [None for i in range(9)] # None means no one has won
 
@@ -203,34 +206,45 @@ def boardfilled(board):
                 return False
     return True
 
+<<<<<<< Updated upstream
 maindepth = 6
+=======
+>>>>>>> Stashed changes
 
+if maindepth % 2==1:
+    if maindepth > 6:
+        maindepth -= 1
+    else:
+        maindepth += 1
+    
 
 def minimize(player, board, depth, alpha, beta, next_large_grid):
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
+    won_or_tie = check_large_grid_win_state()
+    if won_or_tie == "X":
         return -1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
+    elif won_or_tie == "O":
         return 1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
+    elif won_or_tie == "tie":
         return 0, None
-    #time.sleep(2)
-    # if the depth is 0, return the score
+
     if depth == 0:
+<<<<<<< Updated upstream
         val = ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
         return val, None
     # if it is the player's turn
         # we want to maximize the score
+=======
+        return evaluation(player, board, next_large_grid), None
+
+>>>>>>> Stashed changes
     minEval = float("inf")
     best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
+
     if next_large_grid == None:
         available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
     else:
-        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None] # this is putting nothing here (might be big issue)
-    
+        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+
     for i in available_grids:
         for j in range(9):
             if game_state[i][j] == None:
@@ -240,38 +254,39 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
                 if eval < minEval:
                     minEval = eval
                     best_move = (i, j)
+<<<<<<< Updated upstream
                     #print(eval, best_move)
                 beta = min(beta, eval)
                 if beta <=alpha:
+=======
+                beta = min(beta, minEval)
+                if beta <= alpha:
+>>>>>>> Stashed changes
                     break
         if beta <= alpha:
             break
     return minEval, best_move
-   
+
 def maximize(player, board, depth, alpha, beta, next_large_grid):
-# we want to minimize the score
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
+    won_or_tie = check_large_grid_win_state()
+    if won_or_tie == "X":
         return -1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
+    elif won_or_tie == "O":
         return 1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
+    elif won_or_tie == "tie":
         return 0, None
-    # if the depth is 0, return the score
+
     if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    
+        return evaluation(player, board, next_large_grid), None
+
     maxEval = float("-inf")
     best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
+
     if next_large_grid == None:
         available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
     else:
         available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    
+
     for i in available_grids:
         for j in range(9):
             if game_state[i][j] == None:
@@ -281,18 +296,27 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
                 if eval > maxEval:
                     maxEval = eval
                     best_move = (i, j)
+<<<<<<< Updated upstream
                 alpha = max(alpha, eval)
                 if beta <=alpha:
+=======
+                alpha = max(alpha, maxEval)
+                if beta <= alpha:
+>>>>>>> Stashed changes
                     break
         if beta <= alpha:
             break
     return maxEval, best_move
 
-# takes in the player/turn, the board, depth, and alpha and beta values
 def minimax(player, board, depth, alpha, beta, next_large_grid):
-    # if the game is over, return the score
-    eval, best_move = maximize(player,board,depth,alpha,beta,next_large_grid)
-    return eval, best_move
+    _, best_move = maximize(player, board, depth, alpha, beta, next_large_grid)
+    if best_move is None:
+        for i in range(9):
+            if large_grid_state[i] == None:
+                for j in range(9):
+                    if game_state[i][j] == None:
+                        return i, j
+    return best_move
 
 LargeGridweights = [
     1.4, 1, 1.4,
@@ -597,15 +621,22 @@ human1 = "X"
 human2 = "O"
 
 def get_ai_move(player, depth, next_large_grid):
+<<<<<<< Updated upstream
     _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
     # If no valid move is found, search for any available move
     if move == None:
+=======
+    move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
+    if isinstance(move, tuple):
+        return move
+    else:
+        # If no valid move is found, search for any available move
+>>>>>>> Stashed changes
         for i in range(9):
             if large_grid_state[i] == None:
                 for j in range(9):
                     if game_state[i][j] == None:
                         return i, j
-    return move
 
 # using custom tkinter, i want to build a gui for the game
 # i have the game state in the variable game_state as a 2d array

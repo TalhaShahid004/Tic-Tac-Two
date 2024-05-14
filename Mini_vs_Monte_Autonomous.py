@@ -808,20 +808,27 @@ class SmallGrid(ctk.CTkFrame):
                 button = ctk.CTkButton(self, text="", width=50, height=50, corner_radius=1)
                 button.grid(row=r, column=c, sticky="nsew")
                 self.buttons.append(button)
-
-minimaxdepth = 4
+                
+minimaxdepth = 5
 mcts_int = 500
 minimax_wins = 0
 mcts_wins = 0
 ties = 0
 total_moves = 0
-num_games = 2
+num_games = 1
 won_or_tie = False
 player_won_or_tie = None
 next_large_grid = None
 turn = 0
 game_moves = 0
 
+
+if minimaxdepth % 2==1:
+    if minimaxdepth > 6:
+        minimaxdepth -= 1
+    else:
+        minimaxdepth += 1
+    
 def reset_game():
     global game_state, large_grid_state
     game_state = [[None for i in range(9)] for j in range(9)]

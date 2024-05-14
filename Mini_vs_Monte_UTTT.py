@@ -255,6 +255,7 @@ def check_large_grid_win_state():
     return None
 
 
+
 def minimize(player, board, depth, alpha, beta, next_large_grid):
     won_or_tie_CHECK = Only_check_large_grid_win_state()
     won_or_tie_minimax = check_large_grid_win_state()
@@ -886,6 +887,14 @@ class SmallGrid(ctk.CTkFrame):
 minimaxdepth = 5
 mcts_int = 100
 
+
+# make it work on even depth
+if minimaxdepth % 2==1:
+    if minimaxdepth > 6:
+        minimaxdepth -= 1
+    else:
+        minimaxdepth += 1
+    
 def gui():
     global turn, next_large_grid, won_or_tie, player_won_or_tie
 
