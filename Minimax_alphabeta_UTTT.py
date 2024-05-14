@@ -419,7 +419,6 @@ def evaluate_blocking_win(player, grid, increment, weights):
     
     return score
 
-# this function checks if placing a move in a small grid will result in a win
 def evaluate_small_grid_win(player, small_grid, gridnum , increment):
     score = 0
 
@@ -451,7 +450,6 @@ def evaluate_small_grid_win(player, small_grid, gridnum , increment):
 
     return score
 
-# this evaluation will check if the board has been won by the AI player
 def evaluate_large_grid_win(player, board, increment):
     score = 0
     opponent = 'O' if player == 'X' else 'X'
@@ -496,7 +494,6 @@ def evaluate_large_grid_loss(player, board, decrement):
 
     return score
 
-
 def evaluate_grid_two_row(player, grid, increment):
     score = 0
     for i in range(0, 9, 3):
@@ -539,7 +536,6 @@ def evaluate_grid_two_row(player, grid, increment):
         score += increment
     
     return score
-
 
 def evaluate_avoid_opp_block(player, grid, increment):
     opponent = 'O' if player == 'X' else 'X'
