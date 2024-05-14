@@ -342,8 +342,6 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
 def minimax(player, board, depth, alpha, beta, next_large_grid):
     # if the game is over, return the score
     eval, best_move = maximize(player,board,depth,alpha,beta,next_large_grid)
-    print("eval ", eval)
-    print("best move", best_move)
     return eval, best_move
 
 LargeGridweights = [

@@ -275,7 +275,7 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
         for j in range(9):
             if game_state[i][j] == None:
                 game_state[i][j] = player
-                eval, _ = maximize("O", board, depth - 1, alpha, beta, j)
+                eval, _ = maximize("X", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
                 if eval < minEval:
                     minEval = eval
@@ -311,7 +311,7 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
         for j in range(9):
             if game_state[i][j] == None:
                 game_state[i][j] = player
-                eval, _ = minimize("X", board, depth - 1, alpha, beta, j)
+                eval, _ = minimize("O", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
                 if eval > maxEval:
                     maxEval = eval
