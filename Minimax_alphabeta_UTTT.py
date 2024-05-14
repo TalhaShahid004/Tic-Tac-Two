@@ -203,7 +203,7 @@ def boardfilled(board):
                 return False
     return True
 
-maindepth = 5
+maindepth = 6
 
 
 def minimize(player, board, depth, alpha, beta, next_large_grid):
@@ -218,7 +218,7 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
     #time.sleep(2)
     # if the depth is 0, return the score
     if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
+        val = ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
         return val, None
     # if it is the player's turn
         # we want to maximize the score
@@ -235,14 +235,13 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
         for j in range(9):
             if game_state[i][j] == None:
                 game_state[i][j] = player
-                #code is not detecting O to be winning when in 6th position 
                 eval, _ = maximize("O", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
                 if eval < minEval:
                     minEval = eval
                     best_move = (i, j)
                     #print(eval, best_move)
-                beta = min(beta, minEval)
+                beta = min(beta, eval)
                 if beta <=alpha:
                     break
         if beta <= alpha:
@@ -282,7 +281,7 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
                 if eval > maxEval:
                     maxEval = eval
                     best_move = (i, j)
-                alpha = max(alpha, maxEval)
+                alpha = max(alpha, eval)
                 if beta <=alpha:
                     break
         if beta <= alpha:
@@ -599,14 +598,6 @@ human2 = "O"
 
 def get_ai_move(player, depth, next_large_grid):
     _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
-    if move is None:
-        # If no valid move is found, search for any available move
-        for i in range(9):
-            if large_grid_state[i] == None:
-                for j in range(9):
-                    if game_state[i][j] == None:
-                        print("how many times is this running")
-                        return i, j
     return move
 
 # using custom tkinter, i want to build a gui for the game
