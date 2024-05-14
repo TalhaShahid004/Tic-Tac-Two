@@ -253,87 +253,76 @@ def check_large_grid_win_state():
 
 
 def minimize(player, board, depth, alpha, beta, next_large_grid):
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
-        return 1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
+    won_or_tie = check_large_grid_win_state()
+    if won_or_tie == "X":
         return -1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
-        return 0, None
-    #time.sleep(2)
-    # if the depth is 0, return the score
-    if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    # if it is the player's turn
-        # we want to maximize the score
-    maxEval = float("-inf")
-    best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
-    if next_large_grid == None:
-        available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    else:
-        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None] # this is putting nothing here (might be big issue)
-    
-    for i in available_grids:
-        for j in range(9):
-            if game_state[i][j] == None:
-                game_state[i][j] = player
-                #code is not detecting O to be winning when in 6th position 
-                eval, _ = maximize("X", board, depth - 1, alpha, beta, j)
-                game_state[i][j] = None
-                if eval > maxEval:
-                    maxEval = eval
-                    best_move = (i, j)
-                    #print(eval, best_move)
-                alpha = max(alpha, eval)
-                if beta < alpha:
-                    break
-        if beta <= alpha:
-            break
-    return maxEval, best_move
-   
-def maximize(player, board, depth, alpha, beta, next_large_grid):
-# we want to minimize the score
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
+    elif won_or_tie == "O":
         return 1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
-        return -1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
+    elif won_or_tie == "tie":
         return 0, None
-    # if the depth is 0, return the score
+
     if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    
+        return evaluation(player, board, next_large_grid), None
+
     minEval = float("inf")
     best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
+
     if next_large_grid == None:
         available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
     else:
         available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    
+
     for i in available_grids:
         for j in range(9):
             if game_state[i][j] == None:
                 game_state[i][j] = player
-                eval, _ = minimize("O", board, depth - 1, alpha, beta, j)
+                eval, _ = maximize("O", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
                 if eval < minEval:
                     minEval = eval
                     best_move = (i, j)
-                beta = min(beta, eval)
-                if beta < alpha:
+                beta = min(beta, minEval)
+                if beta <= alpha:
                     break
         if beta <= alpha:
             break
     return minEval, best_move
+
+def maximize(player, board, depth, alpha, beta, next_large_grid):
+    won_or_tie = check_large_grid_win_state()
+    if won_or_tie == "X":
+        return -1, None
+    elif won_or_tie == "O":
+        return 1, None
+    elif won_or_tie == "tie":
+        return 0, None
+
+    if depth == 0:
+        return evaluation(player, board, next_large_grid), None
+
+    maxEval = float("-inf")
+    best_move = None
+
+    if next_large_grid == None:
+        available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+    else:
+        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+
+    for i in available_grids:
+        for j in range(9):
+            if game_state[i][j] == None:
+                game_state[i][j] = player
+                eval, _ = minimize("X", board, depth - 1, alpha, beta, j)
+                game_state[i][j] = None
+                if eval > maxEval:
+                    maxEval = eval
+                    best_move = (i, j)
+                alpha = max(alpha, maxEval)
+                if beta <= alpha:
+                    break
+        if beta <= alpha:
+            break
+    return maxEval, best_move
 
 def minimax(player, board, depth, alpha, beta, next_large_grid):
     # if the game is over, return the score
@@ -781,7 +770,7 @@ def get_ai_move(player, depth, next_large_grid, AI):
         # print("mini")
     elif AI == "monte":
         move = mcts(player, game_state, depth, next_large_grid)
-        # print("monte")
+        print("monte")
     return move
 
 # using custom tkinter, i want to build a gui for the game
@@ -813,7 +802,7 @@ class SmallGrid(ctk.CTkFrame):
 minimaxdepth = 4
 mcts_int = 500
 minimax_wins = 0
-mcts_wins = 0
+random_wins = 0
 ties = 0
 total_moves = 0
 num_games = 30
@@ -822,7 +811,7 @@ player_won_or_tie = None
 next_large_grid = None
 turn = 0
 game_moves = 0
-random_wins = 0
+
 
 if minimaxdepth % 2==1:
     if minimaxdepth > 6:
@@ -928,10 +917,10 @@ def gui():
             if not won_or_tie:
                 if turn % 2 == 0:
                     # Minimax player's turn
-                    iterations = minimaxdepth
+                    depth = minimaxdepth
                     player = "X"
                     grid = next_large_grid
-                    selected_grid, selected_small_grid = get_ai_move(player, iterations, grid, "mini")
+                    selected_grid, selected_small_grid = get_ai_move(player, depth, grid, "mini")
                     game_state[selected_grid][selected_small_grid] = "X"
 
                     small_grid_winner = check_small_grid_win_state(selected_grid)
@@ -957,43 +946,44 @@ def gui():
                     game_moves += 1  # Increment game_moves for each move
                     update_gui()
 
-                elif turn % 2 != 0:
-                    # Random agent's turn
-                    player = "O"
-                    available_moves = []
-                    
-                    # If next_large_grid is None, consider all available cells on the board
-                    if next_large_grid is None:
-                        for i in range(9):
+            elif turn % 2 != 0:
+                # Random agent's turn
+                player = "O"
+                available_moves = []
+                if next_large_grid is None:
+                    for i in range(9):
+                        if large_grid_state[i] is None:
                             for j in range(9):
-                                if game_state[i][j] is None and large_grid_state[i] is None:
+                                if game_state[i][j] is None:
                                     available_moves.append((i, j))
+                else:
+                    for j in range(9):
+                        if game_state[next_large_grid][j] is None:
+                            available_moves.append((next_large_grid, j))
+
+                if available_moves:
+                    selected_grid, selected_small_grid = random.choice(available_moves)
+                    game_state[selected_grid][selected_small_grid] = "O"
+
+                    small_grid_winner = check_small_grid_win_state(selected_grid)
+
+                    if small_grid_winner is not None:
+                        print(f"{small_grid_winner} has won the small grid!")
+                        next_large_grid = selected_small_grid
                     else:
-                        for j in range(9):
-                            if game_state[next_large_grid][j] is None:
-                                available_moves.append((next_large_grid, j))
+                        next_large_grid = selected_small_grid
 
-                    if available_moves:
-                        selected_grid, selected_small_grid = random.choice(available_moves)
-                        game_state[selected_grid][selected_small_grid] = "O"
+                    if large_grid_state[next_large_grid] is not None:
+                        next_large_grid = None
 
-                        small_grid_winner = check_small_grid_win_state(selected_grid)
+                    player_won_or_tie = check_large_grid_win_state()
+                    if player_won_or_tie is not None:
+                        won_or_tie = True
 
-                        if small_grid_winner is not None:
-                            print(f"{small_grid_winner} has won the small grid!")
-                            next_large_grid = selected_small_grid
-                        else:
-                            next_large_grid = selected_small_grid
+                    if won_or_tie:
+                        check_game_over()
 
-                        if large_grid_state[next_large_grid] is not None:
-                            next_large_grid = None
-
-                        player_won_or_tie = check_large_grid_win_state()
-                        if player_won_or_tie is not None:
-                            won_or_tie = True
-
-                        if won_or_tie:
-                            check_game_over()
+   
 
                     turn += 1
                     turn_label.configure(text="Minimax's turn")
@@ -1001,14 +991,14 @@ def gui():
                     update_gui()
 
             if not won_or_tie:
-                app.after(500, play_game)  # Schedule the next move after a 500ms delay
-
+                app.after(10, play_game)  # Schedule the next move after a 500ms delay
+                
         update_gui()
         app.after(500, play_game)  # Start the game loop
         app.mainloop()
 
     print(f"Minimax wins: {minimax_wins}")
-    print(f"Random Agent wins: {random_wins}")
+    print(f"Random wins: {random_wins}")
     print(f"Ties: {ties}")
     print(f"Average moves per game: {total_moves / num_games}")
 

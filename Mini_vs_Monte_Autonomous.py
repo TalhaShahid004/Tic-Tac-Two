@@ -252,87 +252,76 @@ def check_large_grid_win_state():
 
 
 def minimize(player, board, depth, alpha, beta, next_large_grid):
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
-        return 1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
+    won_or_tie = check_large_grid_win_state()
+    if won_or_tie == "X":
         return -1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
-        return 0, None
-    #time.sleep(2)
-    # if the depth is 0, return the score
-    if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    # if it is the player's turn
-        # we want to maximize the score
-    maxEval = float("-inf")
-    best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
-    if next_large_grid == None:
-        available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    else:
-        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None] # this is putting nothing here (might be big issue)
-    
-    for i in available_grids:
-        for j in range(9):
-            if game_state[i][j] == None:
-                game_state[i][j] = player
-                #code is not detecting O to be winning when in 6th position 
-                eval, _ = maximize("X", board, depth - 1, alpha, beta, j)
-                game_state[i][j] = None
-                if eval > maxEval:
-                    maxEval = eval
-                    best_move = (i, j)
-                    #print(eval, best_move)
-                alpha = max(alpha, eval)
-                if beta < alpha:
-                    break
-        if beta <= alpha:
-            break
-    return maxEval, best_move
-   
-def maximize(player, board, depth, alpha, beta, next_large_grid):
-# we want to minimize the score
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
+    elif won_or_tie == "O":
         return 1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
-        return -1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
+    elif won_or_tie == "tie":
         return 0, None
-    # if the depth is 0, return the score
+
     if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    
+        return evaluation(player, board, next_large_grid), None
+
     minEval = float("inf")
     best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
+
     if next_large_grid == None:
         available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
     else:
         available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    
+
     for i in available_grids:
         for j in range(9):
             if game_state[i][j] == None:
                 game_state[i][j] = player
-                eval, _ = minimize("O", board, depth - 1, alpha, beta, j)
+                eval, _ = maximize("O", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
                 if eval < minEval:
                     minEval = eval
                     best_move = (i, j)
-                beta = min(beta, eval)
-                if beta < alpha:
+                beta = min(beta, minEval)
+                if beta <= alpha:
                     break
         if beta <= alpha:
             break
     return minEval, best_move
+
+def maximize(player, board, depth, alpha, beta, next_large_grid):
+    won_or_tie = check_large_grid_win_state()
+    if won_or_tie == "X":
+        return -1, None
+    elif won_or_tie == "O":
+        return 1, None
+    elif won_or_tie == "tie":
+        return 0, None
+
+    if depth == 0:
+        return evaluation(player, board, next_large_grid), None
+
+    maxEval = float("-inf")
+    best_move = None
+
+    if next_large_grid == None:
+        available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+    else:
+        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
+
+    for i in available_grids:
+        for j in range(9):
+            if game_state[i][j] == None:
+                game_state[i][j] = player
+                eval, _ = minimize("X", board, depth - 1, alpha, beta, j)
+                game_state[i][j] = None
+                if eval > maxEval:
+                    maxEval = eval
+                    best_move = (i, j)
+                alpha = max(alpha, maxEval)
+                if beta <= alpha:
+                    break
+        if beta <= alpha:
+            break
+    return maxEval, best_move
 
 def minimax(player, board, depth, alpha, beta, next_large_grid):
     # if the game is over, return the score
