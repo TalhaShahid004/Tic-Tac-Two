@@ -812,8 +812,9 @@ class SmallGrid(ctk.CTkFrame):
                 self.buttons.append(button)
 
 
-minimaxdepth = 3
+minimaxdepth = 5
 mcts_int = 100
+
 def gui():
     global turn, next_large_grid, won_or_tie, player_won_or_tie
 
@@ -835,9 +836,55 @@ def gui():
     
     # Create player title
     turn_label = ctk.CTkLabel(app, text="Player " + player + "'s turn", font=("Arial", 16))
-    play_button = ctk.CTkButton(app, text="Next Turn", width=90, height=50, corner_radius=2,command=lambda : on_button_click())
-    play_button.pack(pady=(20,0))
-    turn_label.pack(pady=(20, 0))
+    
+    # Create buttons for increasing and decreasing depth and iterations
+    button_frame = ctk.CTkFrame(app)
+    button_frame.pack(pady=(20, 0))
+    
+    depth_label = ctk.CTkLabel(button_frame, text="Depth: " + str(minimaxdepth))
+    depth_label.pack(side=ctk.LEFT, padx=(0, 10))
+    
+    depth_decrease_button = ctk.CTkButton(button_frame, text="-", width=30, height=30, command=lambda: decrease_depth(depth_label))
+    depth_decrease_button.pack(side=ctk.LEFT)
+    
+    depth_increase_button = ctk.CTkButton(button_frame, text="+", width=30, height=30, command=lambda: increase_depth(depth_label))
+    depth_increase_button.pack(side=ctk.LEFT, padx=(0, 20))
+    
+    iterations_label = ctk.CTkLabel(button_frame, text="Iterations: " + str(mcts_int))
+    iterations_label.pack(side=ctk.LEFT, padx=(0, 10))
+    
+    iterations_decrease_button = ctk.CTkButton(button_frame, text="-", width=30, height=30, command=lambda: decrease_iterations(iterations_label))
+    iterations_decrease_button.pack(side=ctk.LEFT)
+    
+    iterations_increase_button = ctk.CTkButton(button_frame, text="+", width=30, height=30, command=lambda: increase_iterations(iterations_label))
+    iterations_increase_button.pack(side=ctk.LEFT)
+    
+    play_button = ctk.CTkButton(app, text="Next Turn", width=90, height=50, corner_radius=2, command=lambda: on_button_click())
+    play_button.pack(pady=(10, 0))
+    
+    turn_label.pack(pady=(10, 0))
+    
+    def decrease_depth(label):
+        global minimaxdepth
+        if minimaxdepth > 1:
+            minimaxdepth -= 1
+            label.configure(text="Depth: " + str(minimaxdepth))
+    
+    def increase_depth(label):
+        global minimaxdepth
+        minimaxdepth += 1
+        label.configure(text="Depth: " + str(minimaxdepth))
+    
+    def decrease_iterations(label):
+        global mcts_int
+        if mcts_int > 10:
+            mcts_int -= 10
+            label.configure(text="Iterations: " + str(mcts_int))
+    
+    def increase_iterations(label):
+        global mcts_int
+        mcts_int += 10
+        label.configure(text="Iterations: " + str(mcts_int))
     
     def on_button_click():
         print("Next Turn")
