@@ -5,25 +5,11 @@ import customtkinter as ctk
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
 
-# sample case
-# game_state = [["X", "O", None, None, "O", None,None, "O", None],
-#             [None, None, "X",None, "X", None,"X", None, None],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["X", "O", "O","X", None, None,"X", "O", None],
-#             ["O", "O", "O","O", "X", None,None, "O", "X"],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["O", "O", "O",None, None, None,None, None, None],
-#             ["X", None, None,None, "X", None, None, None, "X"],
-#             ["O", "O", "X","O", None, None,None, None, None]
-#             ]
-
 maindepth = 5 # change the depth here 
 
 large_grid_state = [None for i in range(9)] # None means no one has won
 
-
 # print(game_state)
-
 
 def printGameState():
     # Clear the console
@@ -196,16 +182,6 @@ def check_large_grid_win_state():
     
     # if no one has won and there is no tie
     return None
-
-def boardfilled(board):
-    for i in range(9):
-        if large_grid_state[i]!=None:
-            continue
-        for j in range(9):
-            if game_state[i][j]==None:
-                return False
-    return True
-
 
 if maindepth % 2==1:
     if maindepth > 6:
@@ -654,7 +630,6 @@ def gui():
     
     # Create player title
     turn_label = ctk.CTkLabel(app, text="Player " + player + "'s turn", font=("Arial", 16))
-    depth_button = ctk.CTkEntry(app, 140, 28, 2,None)
     turn_label.pack(pady=(20, 0))
     
     def on_button_click(row, col, large_row, large_col):

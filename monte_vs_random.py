@@ -9,16 +9,6 @@ from copy import deepcopy
 # I will use a 2d array for the game logic
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
-# game_state = [["X", "O", None, None, "O", None,None, "O", None],
-#             [None, None, "X",None, "X", None,"X", None, None],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["X", "O", "O","X", None, None,"X", "O", None],
-#             ["O", "O", "O","O", "X", None,None, "O", "X"],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["O", "O", "O",None, None, None,None, None, None],
-#             ["X", None, None,None, "X", None, None, None, "X"],
-#             ["O", "O", "X","O", None, None,None, None, None]
-#             ]
 
 
 large_grid_state = [None for i in range(9)] # None means no one has won
@@ -251,95 +241,6 @@ def check_large_grid_win_state():
     # if no one has won and there is no tie
     return None
 
-
-def minimize(player, board, depth, alpha, beta, next_large_grid):
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
-        return 1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
-        return -1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
-        return 0, None
-    #time.sleep(2)
-    # if the depth is 0, return the score
-    if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    # if it is the player's turn
-        # we want to maximize the score
-    maxEval = float("-inf")
-    best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
-    if next_large_grid == None:
-        available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    else:
-        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None] # this is putting nothing here (might be big issue)
-    
-    for i in available_grids:
-        for j in range(9):
-            if game_state[i][j] == None:
-                game_state[i][j] = player
-                #code is not detecting O to be winning when in 6th position 
-                eval, _ = maximize("X", board, depth - 1, alpha, beta, j)
-                game_state[i][j] = None
-                if eval > maxEval:
-                    maxEval = eval
-                    best_move = (i, j)
-                    #print(eval, best_move)
-                alpha = max(alpha, eval)
-                if beta < alpha:
-                    break
-        if beta <= alpha:
-            break
-    return maxEval, best_move
-   
-def maximize(player, board, depth, alpha, beta, next_large_grid):
-# we want to minimize the score
-    won_or_tie_CHECK = Only_check_large_grid_win_state()
-    won_or_tie_minimax = check_large_grid_win_state()
-    if won_or_tie_CHECK == "X" or won_or_tie_minimax == "X":
-        return 1, None
-    elif won_or_tie_CHECK == "O" or won_or_tie_minimax == "O":
-        return -1, None
-    elif won_or_tie_CHECK == "tie" or won_or_tie_minimax == "tie":
-        return 0, None
-    # if the depth is 0, return the score
-    if depth == 0:
-        val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
-        return val, None
-    
-    minEval = float("inf")
-    best_move = None
-    
-    # if next_large_grid is None, consider all available large grids
-    if next_large_grid == None:
-        available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    else:
-        available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-    
-    for i in available_grids:
-        for j in range(9):
-            if game_state[i][j] == None:
-                game_state[i][j] = player
-                eval, _ = minimize("O", board, depth - 1, alpha, beta, j)
-                game_state[i][j] = None
-                if eval < minEval:
-                    minEval = eval
-                    best_move = (i, j)
-                beta = min(beta, eval)
-                if beta < alpha:
-                    break
-        if beta <= alpha:
-            break
-    return minEval, best_move
-
-def minimax(player, board, depth, alpha, beta, next_large_grid):
-    # if the game is over, return the score
-    eval, best_move = maximize(player,board,depth,alpha,beta,next_large_grid)
-    return eval, best_move
-
 LargeGridweights = [
     1.4, 1, 1.4,
     1 , 1.75, 1,
@@ -390,13 +291,11 @@ def mcts(player, gameState, iterations, next_small_grid):
     root = Node(game, player, None, next_small_grid, None)
     make_children(player, root)
     for i in range(iterations):
-        #print(f"iteration: i")
         node = root
         current_state = deepcopy(game)
         # Selection phase
         node = select_best_child(node)
         current_state[node.move[0]][node.move[1]] = player
-        #print(f"move= {node.move}")
         player = "O" if player == "X" else "X"
         # Simulation and backprop
         simulate_random_playout(node, current_state, player)
@@ -405,7 +304,6 @@ def mcts(player, gameState, iterations, next_small_grid):
     return best_child.move
 
 def make_children(player, node):
-    #print(f"Moves after node {node.move} with player {player}:")
     if node.next_small_grid is None:
         # If the next grid wasn't playable, find the first available small grid
         for i in range(9):
@@ -486,285 +384,6 @@ def select_best_child(node):
             best_child = child
             best_score = score
     return best_child
-
-
-def evaluation(player, board, nextgrid):
-    score = 0
-    # Evaluate small grid blocks
-    for i in range(9):
-        small_grid = game_state[i]
-        score += evaluate_small_grid_win(player, small_grid, i, 3)
-        score += evaluate_blocking_win(player, small_grid, 2, SmallGridWeights)
-        score -= evaluate_small_grid_loss(player, small_grid, 3)
-        score += evaluate_grid_two_row(player, small_grid, 1)
-        score -= evaluate_avoid_opp_block(player, small_grid, 2)
-        score *= LargeGridweights[i]
-    
-    #score -= evaluate_opponent_adv(player, 3, nextgrid)
-    score -= evaluate_large_grid_loss(player, board, 5)
-    # Evaluate large grid win
-    score += evaluate_large_grid_win(player, board, 5)
-    score -= evaluate_avoid_opp_block(player, board, 3)
-    # Evaluate large grid block
-    score += evaluate_grid_two_row(player, small_grid, 2)
-    score += evaluate_blocking_win(player, board, 2, LargeGridweights)
-    #if score<0:
-    #    print("low score")
-    return score
-
-def evaluate_opponent_adv(player, decrement, nextgrid):
-    score = 0
-    state = Only_check_small_grid_win(nextgrid)
-    if state!=None and player == "X":
-        score += decrement
-    return score
-
-def evaluate_small_grid_loss(player, board, decrement):
-    score = 0
-    opponent = 'O' if player == 'X' else 'X'
-    
-    # Check rows
-    for i in range(0, 9, 3):
-        if board[i] == board[i+1] == board[i+2] == opponent:
-            score += decrement
-
-    # Check columns
-    for i in range(3):
-        if board[i] == board[i+3] == board[i+6] == opponent:
-            score += decrement
-
-    # Check diagonals
-    if board[0] == board[4] == board[8] == opponent:
-        score += decrement
-
-    if board[2] == board[4] == board[6] == opponent:
-        score += decrement
-
-    return score
-
-def evaluate_blocking_win(player, grid, increment, weights):
-    opponent = 'O' if player == 'X' else 'X'
-    score = 0
-    for i in range(0, 9, 3):
-        if grid[i] == grid[i+1] == opponent and grid[i+2] == player:
-            score += increment
-            score *= weights[i + 2]
-        elif grid[i] == grid[i+2] == opponent and grid[i+1] == player:
-            score += increment
-            score *= weights[i + 1]
-
-        elif grid[i+1] == grid[i+2] == opponent and grid[i] == player:
-            score += increment
-            score *= weights[i]
-
-
-    # Check columns
-    for i in range(3):
-        if grid[i] == grid[i+3] == opponent and grid[i+6] == player:
-            score += increment
-            score *= weights[i + 6]
-
-        elif grid[i] == grid[i+6] == opponent and grid[i+3] == player:
-            score += increment
-            score *= weights[i + 3]
-
-        elif grid[i+3] == grid[i+6] == opponent and grid[i] == player:
-            score += increment
-            score *= weights[i ]
-
-
-    # Check diagonals
-    if grid[0] == grid[4] == opponent and grid[8] == player:
-        score += increment
-        score *= weights[8]
-
-    elif grid[0] == grid[8] == opponent and grid[4] == player:    
-        score *= weights[4]
-        score += increment
-    
-    elif grid[4] == grid[8] == opponent and grid[0] == player:
-        score += increment
-        score *= weights[0]
-
-
-    if grid[2] == grid[4] == opponent and grid[6] == player:
-        score += increment
-        score *= weights[6]
-    elif grid[2] == grid[6] == opponent and grid[4] == player:
-        score += increment
-        score *= weights[4]
-    elif grid[4] == grid[6] == opponent and grid[2] == player:
-        score += increment
-        score *= weights[2]
-    
-    return score
-
-# this function checks if placing a move in a small grid will result in a win
-def evaluate_small_grid_win(player, small_grid, gridnum , increment):
-    score = 0
-
-    # Check rows
-    for i in range(0, 9, 3):
-        if small_grid[i] == small_grid[i+1] == small_grid[i+2] == player:
-            score += increment
-            score*=LargeGridweights[gridnum]
-            return score
-        
-
-    # Check columns
-    for i in range(3):
-        if small_grid[i] == small_grid[i+3] == small_grid[i+6] == player:
-            score += increment
-            score*=LargeGridweights[gridnum]
-            return score
-
-    # Check diagonals
-    if small_grid[0] == small_grid[gridnum] == small_grid[8] == player:
-        score += increment
-        score*=LargeGridweights[gridnum]
-        return score
-
-    if small_grid[2] == small_grid[gridnum] == small_grid[6] == player:
-        score += increment
-        score*=LargeGridweights[gridnum]
-        return score
-
-    return score
-
-# this evaluation will check if the board has been won by the AI player
-def evaluate_large_grid_win(player, board, increment):
-    score = 0
-    opponent = 'O' if player == 'X' else 'X'
-    
-    # Check rows
-    for i in range(0, 9, 3):
-        if board[i] == board[i+1] == board[i+2] == opponent:
-            score += increment
-
-    # Check columns
-    for i in range(3):
-        if board[i] == board[i+3] == board[i+6] == opponent:
-            score += increment
-
-    # Check diagonals
-    if board[0] == board[4] == board[8] == opponent:
-        score += increment
-
-    if board[2] == board[4] == board[6] == opponent:
-        score += increment
-
-    return score
-
-def evaluate_large_grid_loss(player, board, decrement):
-    opponent = 'O' if player == 'X' else 'X'
-    score = 0
-    for i in range(0, 9, 3):
-        if board[i] == board[i+1] == board[i+2] == opponent:
-            score += decrement
-
-    # Check columns
-    for i in range(3):
-        if board[i] == board[i+3] == board[i+6] == opponent:
-            score += decrement
-
-    # Check diagonals
-    if board[0] == board[4] == board[8] == opponent:
-        score += decrement
-
-    if board[2] == board[4] == board[6] == opponent:
-        score += decrement
-
-    return score
-
-
-def evaluate_grid_two_row(player, grid, increment):
-    score = 0
-    for i in range(0, 9, 3):
-        if grid[i] == grid[i+1] == player and grid[i+2] == None:
-            score += increment
-        elif grid[i] == grid[i+2] == player and grid[i+1] == None:
-            score += increment
-
-        elif grid[i+1] == grid[i+2] == player and grid[i] == None:
-            score += increment
-
-
-    # Check columns
-    for i in range(3):
-        if grid[i] == grid[i+3] == player and grid[i+6] == None:
-            score += increment
-
-        elif grid[i] == grid[i+6] == player and grid[i+3] == None:
-            score += increment
-
-        elif grid[i+3] == grid[i+6] == player and grid[i] == None:
-            score += increment
-
-
-    # Check diagonals
-    if grid[0] == grid[4] == player and grid[8] == None:
-        score += increment
-
-    elif grid[0] == grid[8] == player and grid[4] == None:    
-        score += increment
-    
-    elif grid[4] == grid[8] == player and grid[0] == None:
-        score += increment
-
-    if grid[2] == grid[4] == player and grid[6] == None:
-        score += increment
-    elif grid[2] == grid[6] == player and grid[4] == None:
-        score += increment
-    elif grid[4] == grid[6] == player and grid[2] == None:
-        score += increment
-    
-    return score
-
-
-def evaluate_avoid_opp_block(player, grid, increment):
-    opponent = 'O' if player == 'X' else 'X'
-    score = 0
-    for i in range(0, 9, 3):
-        if grid[i] == grid[i+1] == opponent and grid[i+2] == player:
-            score += increment
-        elif grid[i] == grid[i+2] == opponent and grid[i+1] == player:
-            score += increment
-
-        elif grid[i+1] == grid[i+2] == opponent and grid[i] == player:
-            score += increment
-
-
-    # Check columns
-    for i in range(3):
-        if grid[i] == grid[i+3] == opponent and grid[i+6] == player:
-            score += increment
-
-        elif grid[i] == grid[i+6] == opponent and grid[i+3] == player:
-            score += increment
-
-        elif grid[i+3] == grid[i+6] == opponent and grid[i] == player:
-            score += increment
-
-
-    # Check diagonals
-    if grid[0] == grid[4] == opponent and grid[8] == player:
-        score += increment
-
-    elif grid[0] == grid[8] == opponent and grid[4] == player:    
-        score += increment
-    
-    elif grid[4] == grid[8] == opponent and grid[0] == player:
-        score += increment
-
-    if grid[2] == grid[4] == opponent and grid[6] == player:
-        score += increment
-    elif grid[2] == grid[6] == opponent and grid[4] == player:
-        score += increment
-    elif grid[4] == grid[6] == opponent and grid[2] == player:
-        score += increment
-    
-    return score
-
 # game logic
 
 # userinput
@@ -776,10 +395,7 @@ human1 = "X"
 human2 = "O"
 
 def get_ai_move(player, depth, next_large_grid, AI):
-    if AI == "mini":
-        _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
-        # print("mini")
-    elif AI == "monte":
+    if AI == "monte":
         move = mcts(player, game_state, depth, next_large_grid)
         # print("monte")
     return move

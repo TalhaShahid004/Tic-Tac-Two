@@ -9,17 +9,6 @@ from copy import deepcopy
 # I will use a 2d array for the game logic
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
-# game_state = [["X", "O", None, None, "O", None,None, "O", None],
-#             [None, None, "X",None, "X", None,"X", None, None],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["X", "O", "O","X", None, None,"X", "O", None],
-#             ["O", "O", "O","O", "X", None,None, "O", "X"],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["O", "O", "O",None, None, None,None, None, None],
-#             ["X", None, None,None, "X", None, None, None, "X"],
-#             ["O", "O", "X","O", None, None,None, None, None]
-#             ]
-
 
 large_grid_state = [None for i in range(9)] # None means no one has won
 
@@ -634,6 +623,13 @@ def get_ai_move(player, depth, next_large_grid, AI):
     if AI == "mini":
         _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
         # print("mini")
+    if move is None:
+        # If no valid move is found, search for any available move
+        for i in range(9):
+            if large_grid_state[i] == None:
+                for j in range(9):
+                    if game_state[i][j] == None:
+                        return i, j
     return move
 
 # using custom tkinter, i want to build a gui for the game

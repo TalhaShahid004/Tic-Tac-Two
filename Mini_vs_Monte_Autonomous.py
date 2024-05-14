@@ -8,16 +8,6 @@ from copy import deepcopy
 # I will use a 2d array for the game logic
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
-# game_state = [["X", "O", None, None, "O", None,None, "O", None],
-#             [None, None, "X",None, "X", None,"X", None, None],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["X", "O", "O","X", None, None,"X", "O", None],
-#             ["O", "O", "O","O", "X", None,None, "O", "X"],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["O", "O", "O",None, None, None,None, None, None],
-#             ["X", None, None,None, "X", None, None, None, "X"],
-#             ["O", "O", "X","O", None, None,None, None, None]
-#             ]
 
 
 large_grid_state = [None for i in range(9)] # None means no one has won
@@ -27,7 +17,6 @@ large_grid_state = [None for i in range(9)] # None means no one has won
 
 
 def printGameState():
-    # Clear the console
     print("Ultimate Tic Tac Toe Board:")
 
     print("-----------------------------")
@@ -254,9 +243,9 @@ def check_large_grid_win_state():
 def minimize(player, board, depth, alpha, beta, next_large_grid):
     won_or_tie = check_large_grid_win_state()
     if won_or_tie == "X":
-        return -1, None
-    elif won_or_tie == "O":
         return 1, None
+    elif won_or_tie == "O":
+        return -1, None
     elif won_or_tie == "tie":
         return 0, None
 
@@ -290,9 +279,9 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
 def maximize(player, board, depth, alpha, beta, next_large_grid):
     won_or_tie = check_large_grid_win_state()
     if won_or_tie == "X":
-        return -1, None
-    elif won_or_tie == "O":
         return 1, None
+    elif won_or_tie == "O":
+        return -1, None
     elif won_or_tie == "tie":
         return 0, None
 
