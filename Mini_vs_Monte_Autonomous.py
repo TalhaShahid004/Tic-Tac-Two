@@ -326,6 +326,19 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
 def minimax(player, board, depth, alpha, beta, next_large_grid):
     # if the game is over, return the score
     eval, best_move = maximize(player,board,depth,alpha,beta,next_large_grid)
+    if best_move is None:
+        # If no valid move is found, select a random available move
+        available_moves = []
+        for i in range(9):
+            if next_large_grid is None or i == next_large_grid:
+                for j in range(9):
+                    if game_state[i][j] is None:
+                        available_moves.append((i, j))
+        if available_moves:
+            best_move = random.choice(available_moves)
+        else:
+            # If there are no available moves, return None
+            return eval, None
     return eval, best_move
 
 LargeGridweights = [
@@ -804,7 +817,7 @@ minimax_wins = 0
 mcts_wins = 0
 ties = 0
 total_moves = 0
-num_games = 30
+num_games = 5
 won_or_tie = False
 player_won_or_tie = None
 next_large_grid = None
