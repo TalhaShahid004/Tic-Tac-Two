@@ -877,13 +877,13 @@ def gui():
     
     def decrease_iterations(label):
         global mcts_int
-        if mcts_int > 10:
-            mcts_int -= 10
+        if mcts_int > 50:
+            mcts_int -= 50
             label.configure(text="Iterations: " + str(mcts_int))
     
     def increase_iterations(label):
         global mcts_int
-        mcts_int += 10
+        mcts_int += 50
         label.configure(text="Iterations: " + str(mcts_int))
     
     def on_button_click():
