@@ -847,6 +847,13 @@ def get_ai_move(player, depth, next_large_grid, AI):
     elif AI == "monte":
         move = mcts(player, game_state, depth, next_large_grid)
         print("monte")
+    # If no valid move is found, search for any available move
+    if move == None:
+        for i in range(9):
+            if large_grid_state[i] == None:
+                for j in range(9):
+                    if game_state[i][j] == None:
+                        return i, j
     return move
 
 # using custom tkinter, i want to build a gui for the game

@@ -598,6 +598,13 @@ human2 = "O"
 
 def get_ai_move(player, depth, next_large_grid):
     _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
+    # If no valid move is found, search for any available move
+    if move == None:
+        for i in range(9):
+            if large_grid_state[i] == None:
+                for j in range(9):
+                    if game_state[i][j] == None:
+                        return i, j
     return move
 
 # using custom tkinter, i want to build a gui for the game
@@ -694,11 +701,7 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            depth = depth_button.get()
-            if depth == '':
-                print("depth reset")
-                depth = maindepth
-            depth = int(depth)
+            depth = maindepth
             player = human2
             grid = next_large_grid
             selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
