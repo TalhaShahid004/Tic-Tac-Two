@@ -289,128 +289,6 @@ def minimax(player, board, depth, alpha, beta, next_large_grid):
         return minEval, best_move
 
 
-# def minimax(player, board, depth, alpha, beta, next_large_grid):
-#     print("Minimax called with depth:", depth)
-#     print("Current player:", player)
-#     print("Next large grid:", next_large_grid)
-#     print("Current game state:")
-#     print("-----------------------------")
-#     for i in range(0, 9, 3):
-#         for j in range(3):
-#             for k in range(i, i+3):
-#                 print("|", end=" ")
-#                 for l in range(3):
-#                     if game_state[k][3*j+l] == None:
-#                         print(" ", end=" ")
-#                     else:
-#                         print(game_state[k][3*j+l], end=" ")
-#                 print("|", end=" ")
-#             print()
-#         print("-----------------------------")
-
-#     # if the game is over, return the score
-#     won_or_tie_minimax = check_large_grid_win_state()
-#     if won_or_tie_minimax == "X":
-#         print("Game over. X wins!")
-#         return 1, None
-#     elif won_or_tie_minimax == "O":
-#         print("Game over. O wins!")
-#         return -1, None
-#     elif won_or_tie_minimax == "tie":
-#         print("Game over. It's a tie!")
-#         return 0, None
-
-#     # if the depth is 0, return the score
-#     if depth == 0:
-#         eval_score = evaluation(player, board, next_large_grid)
-#         print("Depth limit reached. Evaluation score:", eval_score)
-#         return eval_score, None
-
-#     # if it is the player's turn
-#     if player == "X":
-#         print("Maximizing player's turn (X)")
-#         maxEval = float("-inf")
-#         best_move = None
-
-#         # if next_large_grid is None, consider all available large grids
-#         if next_large_grid == None:
-#             available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-#         else:
-#             available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
-
-#         print("Available grids:", available_grids)
-
-#         for i in available_grids:
-#             for j in range(9):
-#                 if game_state[i][j] == None:
-#                     game_state[i][j] = player
-#                     new_next_large_grid = j if large_grid_state[j] == None else None
-#                     print("Exploring move: (", i, ",", j, ")")
-#                     eval, _ = minimax("O", board, depth - 1, alpha, beta, new_next_large_grid)
-#                     game_state[i][j] = None
-#                     print("Evaluation score for move (", i, ",", j, "):", eval)
-#                     if eval > maxEval:
-#                         maxEval = eval
-#                         best_move = (i, j)
-#                     alpha = max(alpha, eval)
-#                     if beta <= alpha:
-#                         print("Beta cutoff. Pruning branch.")
-#                         break
-#             if beta <= alpha:
-#                 break
-#         print("Best move for X:", best_move)
-#         print("Max evaluation score:", maxEval)
-#         return maxEval, best_move
-#     else:
-#         print("Minimizing player's turn (O)")
-#         minEval = float("inf")
-#         best_move = None
-
-#         # if next_large_grid is None, consider all available large grids
-#         if next_large_grid == None:
-#             available_grids = [i for i in range(9) if board[i] == None and large_grid_state[i] == None]
-#         else:
-#             available_grids = [next_large_grid] if large_grid_state[next_large_grid] == None else []
-
-#         print("Available grids:", available_grids)
-
-#         for i in available_grids:
-#             for j in range(9):
-#                 if game_state[i][j] == None:
-#                     game_state[i][j] = player
-#                     new_next_large_grid = j if large_grid_state[j] == None else None
-#                     print("Exploring move: (", i, ",", j, ")")
-#                     eval, _ = minimax("X", board, depth - 1, alpha, beta, new_next_large_grid)
-#                     game_state[i][j] = None
-#                     print("Evaluation score for move (", i, ",", j, "):", eval)
-#                     if eval < minEval:
-#                         minEval = eval
-#                         best_move = (i, j)
-#                     beta = min(beta, eval)
-#                     if beta <= alpha:
-#                         print("Alpha cutoff. Pruning branch.")
-#                         break
-#             if beta <= alpha:
-#                 break
-#         print("Best move for O:", best_move)
-#         print("Min evaluation score:", minEval)
-#         return minEval, best_move
-
-
-# LargeGridweights = [
-#  1, 1, 1,
-#     1, 1, 1,
-#     1, 1, 1,
-# ]
-
-# SmallGridWeights = [
-#  1, 1, 1,
-#     1, 1, 1,
-#     1, 1, 1,
-# ]
-
-
-
 LargeGridweights = [
     1.4, 1, 1.4,
     1 , 1.75, 1,
@@ -462,13 +340,13 @@ def mcts(player, gameState, iterations, next_small_grid):
     root = Node(game, player, None, next_small_grid, None)
     make_children(player, root)
     for i in range(iterations):
-        print(f"iteration: i")
+        #print(f"iteration: i")
         node = root
         current_state = deepcopy(game)
         # Selection phase
         node = select_best_child(node)
         current_state[node.move[0]][node.move[1]] = player
-        print(f"move= {node.move}")
+        #print(f"move= {node.move}")
         player = "O" if player == "X" else "X"
         # Simulation and backprop
         simulate_random_playout(node, current_state, player)
@@ -518,7 +396,7 @@ def backpropagate(node, winner):
 
 # Function to simulate a random playout from a node with both players making random moves
 def simulate_random_playout(node, gameState, player):
-    print("Simulation started")
+    #print("Simulation started")
     current_state = deepcopy(gameState)
     child = node
     make_children(player, child)
@@ -532,17 +410,17 @@ def simulate_random_playout(node, gameState, player):
                 maxmove = LargeGridweights[moves[0]] + SmallGridWeights[moves[1]]
         child = child.children.get(move)
         #move, child = random.choice(list(child.children.items()))  # Access move and child tuple
-        print(move)
+        #print(move)
         current_state[move[0]][move[1]] = player
         player = "O" if player == "X" else "X"  # Alternate players
-        printGameState(current_state)
+        #printGameState(current_state)
         if game_won(current_state) is not None:
             break
         make_children(player, child)
     winner = game_won(current_state)
-    print(f"Winner: {winner}")
+    #print(f"Winner: {winner}")
     backpropagate(child, winner)
-    print("game finished")
+    #Sprint("game finished")
     return winner
 
 
@@ -561,9 +439,6 @@ def select_best_child(node):
 
 
 
-
-def evaluation(player, board):
-=======
 
 def evaluation(player, board, next_large_grid):
   
@@ -879,9 +754,9 @@ turn = 0
 human1 = "X"
 human2 = "O"
 
-def get_ai_move(player, depth, next_large_grid):
+def get_ai_move(player, iterations, next_large_grid):
     #_, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
-    move = mcts(player, game_state, 100, next_large_grid)
+    move = mcts(player, game_state, iterations, next_large_grid)
     if move is None:
         # If no valid move is found, search for any available move
         for i in range(9):
@@ -982,10 +857,10 @@ def gui():
 
         if not won_or_tie and turn % 2 != 0:
             # AI player's turn
-            depth = 6
+            iterations = 1000
             player = human2
             grid = next_large_grid
-            selected_grid, selected_small_grid = get_ai_move(player, depth, grid)
+            selected_grid, selected_small_grid = get_ai_move(player, iterations, grid)
             game_state[selected_grid][selected_small_grid] = human2
 
             small_grid_winner = check_small_grid_win_state(selected_grid)
