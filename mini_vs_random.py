@@ -813,7 +813,7 @@ class SmallGrid(ctk.CTkFrame):
 minimaxdepth = 4
 mcts_int = 500
 minimax_wins = 0
-random_wins = 0
+mcts_wins = 0
 ties = 0
 total_moves = 0
 num_games = 30
@@ -822,7 +822,7 @@ player_won_or_tie = None
 next_large_grid = None
 turn = 0
 game_moves = 0
-
+random_wins = 0
 
 if minimaxdepth % 2==1:
     if minimaxdepth > 6:
@@ -928,10 +928,10 @@ def gui():
             if not won_or_tie:
                 if turn % 2 == 0:
                     # Minimax player's turn
-                    depth = minimaxdepth
+                    iterations = minimaxdepth
                     player = "X"
                     grid = next_large_grid
-                    selected_grid, selected_small_grid = get_ai_move(player, depth, grid, "mini")
+                    selected_grid, selected_small_grid = get_ai_move(player, iterations, grid, "mini")
                     game_state[selected_grid][selected_small_grid] = "X"
 
                     small_grid_winner = check_small_grid_win_state(selected_grid)
@@ -957,44 +957,43 @@ def gui():
                     game_moves += 1  # Increment game_moves for each move
                     update_gui()
 
-            elif turn % 2 != 0:
-                # Random agent's turn
-                player = "O"
-                available_moves = []
-                if next_large_grid is None:
-                    for i in range(9):
-                        if large_grid_state[i] is None:
+                elif turn % 2 != 0:
+                    # Random agent's turn
+                    player = "O"
+                    available_moves = []
+                    
+                    # If next_large_grid is None, consider all available cells on the board
+                    if next_large_grid is None:
+                        for i in range(9):
                             for j in range(9):
-                                if game_state[i][j] is None:
+                                if game_state[i][j] is None and large_grid_state[i] is None:
                                     available_moves.append((i, j))
-                else:
-                    for j in range(9):
-                        if game_state[next_large_grid][j] is None:
-                            available_moves.append((next_large_grid, j))
-
-                if available_moves:
-                    selected_grid, selected_small_grid = random.choice(available_moves)
-                    game_state[selected_grid][selected_small_grid] = "O"
-
-                    small_grid_winner = check_small_grid_win_state(selected_grid)
-
-                    if small_grid_winner is not None:
-                        print(f"{small_grid_winner} has won the small grid!")
-                        next_large_grid = selected_small_grid
                     else:
-                        next_large_grid = selected_small_grid
+                        for j in range(9):
+                            if game_state[next_large_grid][j] is None:
+                                available_moves.append((next_large_grid, j))
 
-                    if large_grid_state[next_large_grid] is not None:
-                        next_large_grid = None
+                    if available_moves:
+                        selected_grid, selected_small_grid = random.choice(available_moves)
+                        game_state[selected_grid][selected_small_grid] = "O"
 
-                    player_won_or_tie = check_large_grid_win_state()
-                    if player_won_or_tie is not None:
-                        won_or_tie = True
+                        small_grid_winner = check_small_grid_win_state(selected_grid)
 
-                    if won_or_tie:
-                        check_game_over()
+                        if small_grid_winner is not None:
+                            print(f"{small_grid_winner} has won the small grid!")
+                            next_large_grid = selected_small_grid
+                        else:
+                            next_large_grid = selected_small_grid
 
-   
+                        if large_grid_state[next_large_grid] is not None:
+                            next_large_grid = None
+
+                        player_won_or_tie = check_large_grid_win_state()
+                        if player_won_or_tie is not None:
+                            won_or_tie = True
+
+                        if won_or_tie:
+                            check_game_over()
 
                     turn += 1
                     turn_label.configure(text="Minimax's turn")
@@ -1003,13 +1002,13 @@ def gui():
 
             if not won_or_tie:
                 app.after(500, play_game)  # Schedule the next move after a 500ms delay
-                
+
         update_gui()
         app.after(500, play_game)  # Start the game loop
         app.mainloop()
 
     print(f"Minimax wins: {minimax_wins}")
-    print(f"Random wins: {random_wins}")
+    print(f"Random Agent wins: {random_wins}")
     print(f"Ties: {ties}")
     print(f"Average moves per game: {total_moves / num_games}")
 

@@ -810,7 +810,7 @@ class SmallGrid(ctk.CTkFrame):
                 button.grid(row=r, column=c, sticky="nsew")
                 self.buttons.append(button)
                 
-minimaxdepth = 5
+minimaxdepth = 4
 mcts_int = 500
 minimax_wins = 0
 mcts_wins = 0
