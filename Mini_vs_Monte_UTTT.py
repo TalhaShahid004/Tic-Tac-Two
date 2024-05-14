@@ -884,7 +884,7 @@ class SmallGrid(ctk.CTkFrame):
                 self.buttons.append(button)
 
 
-minimaxdepth = 5
+minimaxdepth = 4
 mcts_int = 100
 
 

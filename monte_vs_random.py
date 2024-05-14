@@ -1,6 +1,7 @@
 import random
 import customtkinter as ctk
 import math
+import random
 from copy import deepcopy
 
 # ultimate tic tac toe
@@ -809,7 +810,7 @@ class SmallGrid(ctk.CTkFrame):
                 button.grid(row=r, column=c, sticky="nsew")
                 self.buttons.append(button)
                 
-minimaxdepth = 4
+minimaxdepth = 5
 mcts_int = 500
 minimax_wins = 0
 mcts_wins = 0
@@ -821,7 +822,7 @@ player_won_or_tie = None
 next_large_grid = None
 turn = 0
 game_moves = 0
-
+random_wins = 0
 
 if minimaxdepth % 2==1:
     if minimaxdepth > 6:
@@ -835,7 +836,7 @@ def reset_game():
     large_grid_state = [None for i in range(9)]
 
 def gui():
-    global minimax_wins, mcts_wins, ties, total_moves, won_or_tie, player_won_or_tie, next_large_grid, turn, game_moves
+    global mcts_wins, random_wins, ties, total_moves, won_or_tie, player_won_or_tie, next_large_grid, turn, game_moves
 
     for game_num in range(1, num_games + 1):
         reset_game()
@@ -853,7 +854,7 @@ def gui():
         grid_frames = []
 
         # Create player title
-        turn_label = ctk.CTkLabel(app, text="Minimax's turn", font=("Arial", 16))
+        turn_label = ctk.CTkLabel(app, text="Monte Carlo's turn", font=("Arial", 16))
         turn_label.pack(pady=(10, 0))
 
         # Create a 3x3 grid of small grids
@@ -871,15 +872,15 @@ def gui():
                 grid_frames.append(outer_frame)
 
         def check_game_over():
-            global minimax_wins, mcts_wins, ties, total_moves, won_or_tie, player_won_or_tie
+            global mcts_wins, random_wins, ties, total_moves, won_or_tie, player_won_or_tie
 
             if won_or_tie:
                 if player_won_or_tie == "tie":
                     ties += 1
                 elif player_won_or_tie == "X":
-                    minimax_wins += 1
-                else:
                     mcts_wins += 1
+                else:
+                    random_wins += 1
                 total_moves += game_moves
                 app.after(2000, app.destroy)  # Close the window after 2 seconds
 
@@ -926,11 +927,11 @@ def gui():
 
             if not won_or_tie:
                 if turn % 2 == 0:
-                    # Minimax player's turn
-                    depth = minimaxdepth
+                    # Monte Carlo player's turn
+                    iterations = mcts_int
                     player = "X"
                     grid = next_large_grid
-                    selected_grid, selected_small_grid = get_ai_move(player, depth, grid, "mini")
+                    selected_grid, selected_small_grid = get_ai_move(player, iterations, grid, "monte")
                     game_state[selected_grid][selected_small_grid] = "X"
 
                     small_grid_winner = check_small_grid_win_state(selected_grid)
@@ -952,38 +953,50 @@ def gui():
                         check_game_over()
 
                     turn += 1
-                    turn_label.configure(text="MCTS's turn")
+                    turn_label.configure(text="Random Agent's turn")
                     game_moves += 1  # Increment game_moves for each move
                     update_gui()
 
                 elif turn % 2 != 0:
-                    # MCTS player's turn
-                    iterations = mcts_int
+                    # Random agent's turn
                     player = "O"
-                    grid = next_large_grid
-                    selected_grid, selected_small_grid = get_ai_move(player, iterations, grid, "monte")
-                    game_state[selected_grid][selected_small_grid] = "O"
-
-                    small_grid_winner = check_small_grid_win_state(selected_grid)
-
-                    if small_grid_winner is not None:
-                        print(f"{small_grid_winner} has won the small grid!")
-                        next_large_grid = selected_small_grid
+                    available_moves = []
+                    
+                    # If next_large_grid is None, consider all available cells on the board
+                    if next_large_grid is None:
+                        for i in range(9):
+                            for j in range(9):
+                                if game_state[i][j] is None and large_grid_state[i] is None:
+                                    available_moves.append((i, j))
                     else:
-                        next_large_grid = selected_small_grid
+                        for j in range(9):
+                            if game_state[next_large_grid][j] is None:
+                                available_moves.append((next_large_grid, j))
 
-                    if large_grid_state[next_large_grid] is not None:
-                        next_large_grid = None
+                    if available_moves:
+                        selected_grid, selected_small_grid = random.choice(available_moves)
+                        game_state[selected_grid][selected_small_grid] = "O"
 
-                    player_won_or_tie = check_large_grid_win_state()
-                    if player_won_or_tie is not None:
-                        won_or_tie = True
+                        small_grid_winner = check_small_grid_win_state(selected_grid)
 
-                    if won_or_tie:
-                        check_game_over()
+                        if small_grid_winner is not None:
+                            print(f"{small_grid_winner} has won the small grid!")
+                            next_large_grid = selected_small_grid
+                        else:
+                            next_large_grid = selected_small_grid
+
+                        if large_grid_state[next_large_grid] is not None:
+                            next_large_grid = None
+
+                        player_won_or_tie = check_large_grid_win_state()
+                        if player_won_or_tie is not None:
+                            won_or_tie = True
+
+                        if won_or_tie:
+                            check_game_over()
 
                     turn += 1
-                    turn_label.configure(text="Minimax's turn")
+                    turn_label.configure(text="Monte Carlo's turn")
                     game_moves += 1  # Increment game_moves for each move
                     update_gui()
 
@@ -994,8 +1007,8 @@ def gui():
         app.after(500, play_game)  # Start the game loop
         app.mainloop()
 
-    print(f"Minimax wins: {minimax_wins}")
-    print(f"MCTS wins: {mcts_wins}")
+    print(f"Monte Carlo wins: {mcts_wins}")
+    print(f"Random Agent wins: {random_wins}")
     print(f"Ties: {ties}")
     print(f"Average moves per game: {total_moves / num_games}")
 
