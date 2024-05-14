@@ -2,6 +2,7 @@ import customtkinter as ctk
 import math
 import time
 from copy import deepcopy
+import random
 
 # ultimate tic tac toe
 
@@ -356,27 +357,30 @@ SmallGridWeights = [
     1,   0.9, 1
 ]
 
-# Define the Node class for MCTS
 class Node:
     """
-        Represents a node in the Monte Carlo Tree Search (MCTS) algorithm.
+    Represents a node in the Monte Carlo Tree Search (MCTS) algorithm.
 
-        Attributes:
-            board (list): The game board representing the state of the game.
-            parent (Node): The parent node of this node. None if it's the root node.
-            children (list): The list of child nodes of this node.
-            next_small_grid (tuple): The coordinates of the small grid where the next move can be played legally.
-            wins (int): The number of simulated games won from this node.
-            visits (int): The number of times this node has been visited during simulations.
+    Attributes:
+        board (list): The game board representing the state of the game at this node.
+        parent (Node): The parent node of this node. None if it's the root node.
+        children (dict): Dictionary containing child nodes as values and their corresponding moves as keys.
+        next_small_grid (tuple): The coordinates of the small grid where the next move can be played legally.
+        move (tuple): The coordinates of the move that led to this node.
+        player (str): The player whose the one supposed to be winning, MCTS with 'O' would only have nodes with player as 'O'.
+        wins (int): The number of simulated games won from this node.
+        visits (int): The number of times this node has been visited during simulations.
     """
     def __init__(self, board, player, parent=None, next_small_grid=None, move=None):
         """
-        Initialize a node with the given game board, parent node, and next small grid.
+        Initialize a node with the given game board, player, parent node, and next small grid.
 
         Args:
             board (list): The game board representing the state of the game.
+            player (str): The player who is supposed to be winning.
             parent (Node, optional): The parent node of this node. Defaults to None.
             next_small_grid (tuple, optional): The coordinates of the small grid where the next move can be played legally. Defaults to None.
+            move (tuple, optional): The coordinates of the move that led to this node. Defaults to None.
         """
         self.board = board
         self.parent = parent
@@ -388,8 +392,19 @@ class Node:
         self.visits = 0
 
 
-# Function to perform MCTS and return the best move
 def mcts(player, gameState, iterations, next_small_grid):
+    """
+        Performs Monte Carlo Tree Search (MCTS) to find the best move for the given player.
+
+        Args:
+            player (str): The player ('X' or 'O') for whom the move is being determined.
+            gameState (list): The current state of the game represented as a 9x9 grid.
+            iterations (int): The number of iterations to run MCTS.
+            next_small_grid (tuple): The coordinates of the small grid where the next move can be played legally.
+
+        Returns:
+            tuple: The coordinates of the best move determined by MCTS.
+        """
     game = deepcopy(gameState)
     root = Node(game, player, None, next_small_grid, None)
     make_children(player, root)
@@ -400,16 +415,21 @@ def mcts(player, gameState, iterations, next_small_grid):
         # Selection phase
         node = select_best_child(node)
         current_state[node.move[0]][node.move[1]] = player
-        #print(f"move= {node.move}")
         player = "O" if player == "X" else "X"
         # Simulation and backprop
         simulate_random_playout(node, current_state, player)
-    # Select the best move based on the most visited child
+    # Select the best move based on the most visited child, can also change this to wins/visits ratio
     best_child = max(root.children.values(), key=lambda child: child.visits)
     return best_child.move
 
 def make_children(player, node):
-    #print(f"Moves after node {node.move} with player {player}:")
+    """
+        Expands the children of the given node based on the legal moves available in the game state.
+
+        Args:
+            player (str): The player ('X' or 'O') making the move.
+            node (Node): The node for which children are to be created.
+    """
     if node.next_small_grid is None:
         # If the next grid wasn't playable, find the first available small grid
         for i in range(9):
@@ -418,19 +438,22 @@ def make_children(player, node):
                 break
 
     if node.next_small_grid is not None:
+        # If there's a next small grid available
         for i in range(9):
             if node.board[node.next_small_grid][i] is None:
+                # If the position is available in the next small grid, create a child node
                 board_copy = [row[:] for row in node.board]
                 board_copy[node.next_small_grid][i] = player
+                # Determine the next small grid for the child node
                 next_small = i if check_small_grid_win(board_copy[i]) is None else None
-                move = [node.next_small_grid, i]
-                child = Node(board_copy, node.player, node, next_small, move)
-                #print(f"row, col = {node.next_small_grid}, {i}, next small = {next_small}")
-                node.children[node.next_small_grid, i] = child
+                move = (node.next_small_grid, i)
+                child = Node(board_copy, player, node, next_small, move)
+                node.children[(node.next_small_grid, i)] = child
     else:
         # If all small grids are won, allow moves in any available position
         for i in range(9):
             for j in range(9):
+                # If the position is available, create a child node
                 if node.board[i][j] is None:
                     board_copy = [row[:] for row in node.board]
                     board_copy[i][j] = player
@@ -439,22 +462,44 @@ def make_children(player, node):
                     node.children[i,j]=child
 
 
-# Function to backpropagate the result of a playout
 def backpropagate(node, winner):
+    """
+        Backpropagates the result of a playout from the given node.
+
+        Args:
+            node (Node): The node from which to start backpropagation.
+            winner (str): The winner of the simulated game ('X', 'O', or 'tie').
+    """
+    # Start from the given node and propagate the result upwards
     while node is not None:
+        # Increment the number of visits to the node
         node.visits += 1
+        # Increment the number of wins if the winner matches the node's player
         if winner == node.player:
             node.wins += 1
+        # Move to the parent node for further backpropagation
         node = node.parent
 
 
-# Function to simulate a random playout from a node with both players making random moves
 def simulate_random_playout(node, gameState, player):
+    """
+        Simulates a random playout from the given node with both players making random moves.
+
+        Args:
+            node (Node): The node from which to start the random playout.
+            gameState (list): The current state of the game.
+            player (str): The player whose turn it is to make a move.
+
+        Returns:
+            str: The winner of the simulated game ('X', 'O', or 'tie').
+    """
     #print("Simulation started")
-    current_state = deepcopy(gameState)
-    child = node
-    make_children(player, child)
+    current_state = deepcopy(gameState) # Create a deep copy of the game state
+    child = node # Start the playout from the given node
+    make_children(player, child) # Generate children for the starting node
+    # Continue the playout until a player wins or the game ends in a tie
     while game_won(current_state) is None:
+        """ This part of code doesnt pick on random but on which child node has the greatest weight on its move
         maxmove = -2
         move = None
         # Choosing best child
@@ -462,11 +507,18 @@ def simulate_random_playout(node, gameState, player):
             if LargeGridweights[moves[0]] + SmallGridWeights[moves[1]] > maxmove:
                 move = moves
                 maxmove = LargeGridweights[moves[0]] + SmallGridWeights[moves[1]]
-        child = child.children.get(move)
-        #move, child = random.choice(list(child.children.items()))  # Access move and child tuple
-        #print(move)
+        child = child.children.get(move)"""
+        # Choose a random move from the available child nodes
+        move, child = random.choice(list(child.children.items()))
+
+        # Update the game state with the selected move
         current_state[move[0]][move[1]] = player
-        player = "O" if player == "X" else "X"  # Alternate players
+
+        # Alternate players for the next move
+        player = "O" if player == "X" else "X"
+
+        # Generate children for the next player's turn
+        make_children(player, child)
         #printGameState(current_state)
         if game_won(current_state) is not None:
             break
@@ -478,14 +530,27 @@ def simulate_random_playout(node, gameState, player):
     return winner
 
 
-# Function to select the best child node using UCB1 formula
 def select_best_child(node):
+    """
+        Selects the best child node using the Upper Confidence Bound (UCB1) formula.
+
+        Args:
+            node (Node): The parent node from which to select the best child.
+
+        Returns:
+            Node: The best child node according to the UCB1 formula.
+    """
     best_child = None
     best_score = -float('inf')
     for child in node.children.values():
+        # If a child node has not been visited, return it immediately
         if child.visits == 0:
             return child
+
+        # Calculate the UCB1 score for the child node
         score = child.wins / child.visits + math.sqrt(2 * math.log(node.visits) / child.visits)
+
+        # Update the best child and best score if the current child has a higher score
         if score > best_score:
             best_child = child
             best_score = score
