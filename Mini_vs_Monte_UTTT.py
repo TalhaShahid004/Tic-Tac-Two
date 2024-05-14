@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import math
+import time
 from copy import deepcopy
 
 # ultimate tic tac toe
@@ -7,18 +8,19 @@ from copy import deepcopy
 # I will use a 2d array for the game logic
 # Initialise an empty board
 game_state = [[None for i in range(9)] for j in range(9)]
-# game_state = [["X", "O", None, None, "O", None,None, "O", None],
-#             [None, None, "X",None, "X", None,"X", None, None],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["X", "O", "O","X", None, None,"X", "O", None],
-#             ["O", "O", "O","O", "X", None,None, "O", "X"],
-#             ["O", None, "X",None, "X", None,"X", None, None],
-#             ["O", "O", "O",None, None, None,None, None, None],
-#             ["X", None, None,None, "X", None, None, None, "X"],
-#             ["O", "O", "X","O", None, None,None, None, None]
+# game_state = [["X", None, None, None, "O", None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
+#             [None, None, None,None, None, None,None, None, None],
 #             ]
 
 
+turn = 0
 large_grid_state = [None for i in range(9)] # None means no one has won
 
 
@@ -27,6 +29,8 @@ large_grid_state = [None for i in range(9)] # None means no one has won
 
 def printGameState():
     # Clear the console
+    # if (turn == 4):
+    #     time.sleep(2)
     print("Ultimate Tic Tac Toe Board:")
 
     print("-----------------------------")
@@ -266,7 +270,7 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
         return val, None
     # if it is the player's turn
         # we want to maximize the score
-    maxEval = float("-inf")
+    minEval = float("inf")
     best_move = None
     
     # if next_large_grid is None, consider all available large grids
@@ -282,16 +286,16 @@ def minimize(player, board, depth, alpha, beta, next_large_grid):
                 #code is not detecting O to be winning when in 6th position 
                 eval, _ = maximize("X", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
-                if eval > maxEval:
-                    maxEval = eval
+                if eval < minEval:
+                    minEval = eval
                     best_move = (i, j)
                     #print(eval, best_move)
-                alpha = max(alpha, eval)
-                if beta < alpha:
+                beta = min(beta, minEval)
+                if beta <=alpha:
                     break
         if beta <= alpha:
             break
-    return maxEval, best_move
+    return minEval, best_move
    
 def maximize(player, board, depth, alpha, beta, next_large_grid):
 # we want to minimize the score
@@ -308,7 +312,7 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
         val =  ((evaluation(player, board, next_large_grid))/60) # trying to normalize the value between -1 and 1
         return val, None
     
-    minEval = float("inf")
+    maxEval = float("-inf")
     best_move = None
     
     # if next_large_grid is None, consider all available large grids
@@ -323,19 +327,21 @@ def maximize(player, board, depth, alpha, beta, next_large_grid):
                 game_state[i][j] = player
                 eval, _ = minimize("O", board, depth - 1, alpha, beta, j)
                 game_state[i][j] = None
-                if eval < minEval:
-                    minEval = eval
+                if eval > maxEval:
+                    maxEval = eval
                     best_move = (i, j)
-                beta = min(beta, eval)
-                if beta < alpha:
+                alpha = max(alpha, maxEval)
+                if beta <=alpha:
                     break
         if beta <= alpha:
             break
-    return minEval, best_move
+    return maxEval, best_move
 
 def minimax(player, board, depth, alpha, beta, next_large_grid):
     # if the game is over, return the score
     eval, best_move = maximize(player,board,depth,alpha,beta,next_large_grid)
+    print("eval ", eval)
+    print("best move", best_move)
     return eval, best_move
 
 LargeGridweights = [
@@ -488,6 +494,8 @@ def select_best_child(node):
 
 def evaluation(player, board, nextgrid):
     score = 0
+    # if turn == 4:
+    #     print("check")
     # Evaluate small grid blocks
     for i in range(9):
         small_grid = game_state[i]
@@ -508,13 +516,6 @@ def evaluation(player, board, nextgrid):
     score += evaluate_blocking_win(player, board, 2, LargeGridweights)
     #if score<0:
     #    print("low score")
-    return score
-
-def evaluate_opponent_adv(player, decrement, nextgrid):
-    score = 0
-    state = Only_check_small_grid_win(nextgrid)
-    if state!=None and player == "X":
-        score += decrement
     return score
 
 def evaluate_small_grid_loss(player, board, decrement):
@@ -768,8 +769,6 @@ def evaluate_avoid_opp_block(player, grid, increment):
 # userinput
 won_or_tie = False
 player_won_or_tie = None
-next_large_grid = None  
-turn = 0
 
 # printGameState()
 
