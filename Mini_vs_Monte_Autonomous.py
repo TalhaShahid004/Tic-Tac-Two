@@ -795,8 +795,8 @@ def get_ai_move(player, depth, next_large_grid, AI):
 
 
 class SmallGrid(ctk.CTkFrame):
-    def _init_(self, master, large_row, large_col, on_button_click):
-        super()._init_(master)
+    def __init__(self, master, large_row, large_col, on_button_click):
+        super().__init__(master)
         self.buttons = []
         self.large_row = large_row
         self.large_col = large_col
