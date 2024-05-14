@@ -1,4 +1,7 @@
 import customtkinter as ctk
+import random
+import math
+from copy import deepcopy
 
 # ultimate tic tac toe
 
@@ -8,7 +11,7 @@ game_state = [[None for i in range(9)] for j in range(9)]
 # print(game_state)
 
 
-def printGameState():
+def printGameState(grid=game_state):
     print("Ultimate Tic Tac Toe Board:")
 
     print("-----------------------------")
@@ -18,10 +21,10 @@ def printGameState():
             for k in range(i, i+3):
                 print("|", end=" ")
                 for l in range(3):
-                    if game_state[k][3*j+l] == None:
+                    if grid[k][3*j+l] == None:
                         print(" ", end=" ")
                     else:
-                        print(game_state[k][3*j+l], end=" ")
+                        print(grid[k][3*j+l], end=" ")
                 print("|", end=" ")
             print()
         print("-----------------------------")
@@ -103,6 +106,60 @@ def check_large_grid_win_state():
     
     # if no one has won and there is no tie
     return None
+
+
+def check_small_grid_win(selected_grid):
+    for i in range(3):
+        # check for a row win
+        if selected_grid[3 * i] == selected_grid[3 * i + 1] == selected_grid[3 * i + 2] != None:
+            # return the winner
+            return selected_grid[3 * i]
+
+        # check for a column win
+        if selected_grid[i] == selected_grid[i + 3] == selected_grid[i + 6] != None:
+            # return the winner
+            return selected_grid[i]
+
+    # check for a diagonal win
+    if selected_grid[0] == selected_grid[4] == selected_grid[8] != None:
+        # return the winner
+        return selected_grid[0]
+    if selected_grid[2] == selected_grid[4] == selected_grid[6] != None:
+        # return the winner
+        return selected_grid[2]
+
+    # check for a tie
+    count = 0
+    for i in range(9):
+        if selected_grid[i] != None:
+            count += 1
+    if count == 9:
+        return "tie"
+
+    # if no one has won and there is no tie
+    return None
+
+def game_won(board):
+    large_grid_states = [None] * 9
+
+    # Check for a win in each small grid
+    for i in range(9):
+        small_grid = board[i]
+        winner = check_small_grid_win(small_grid)
+        large_grid_states[i] = winner
+
+    # Check for a win in the large grid
+    large_grid_winner = check_small_grid_win(large_grid_states)
+    if large_grid_winner:
+        return large_grid_winner
+
+    # Check for a tie
+    if all(cell is not None for grid in board for cell in grid):
+        return "tie"
+
+    # If no winner and not a tie
+    return None
+
 
 # def get_large_grid_input():
     
@@ -366,8 +423,150 @@ SmallGridWeights = [
     0.2,   0.17, 0.2
 ]
 
+# Define the Node class for MCTS
+class Node:
+    """
+        Represents a node in the Monte Carlo Tree Search (MCTS) algorithm.
+
+        Attributes:
+            board (list): The game board representing the state of the game.
+            parent (Node): The parent node of this node. None if it's the root node.
+            children (list): The list of child nodes of this node.
+            next_small_grid (tuple): The coordinates of the small grid where the next move can be played legally.
+            wins (int): The number of simulated games won from this node.
+            visits (int): The number of times this node has been visited during simulations.
+    """
+    def __init__(self, board, player, parent=None, next_small_grid=None, move=None):
+        """
+        Initialize a node with the given game board, parent node, and next small grid.
+
+        Args:
+            board (list): The game board representing the state of the game.
+            parent (Node, optional): The parent node of this node. Defaults to None.
+            next_small_grid (tuple, optional): The coordinates of the small grid where the next move can be played legally. Defaults to None.
+        """
+        self.board = board
+        self.parent = parent
+        self.children = {}
+        self.next_small_grid = next_small_grid
+        self.move = move
+        self.player = player
+        self.wins = 0
+        self.visits = 0
+
+
+
+# Function to perform MCTS and return the best move
+def mcts(player, gameState, iterations, next_small_grid):
+    game = deepcopy(gameState)
+    root = Node(game, player, None, next_small_grid, None)
+    make_children(player, root)
+    for i in range(iterations):
+        print(f"iteration: i")
+        node = root
+        current_state = deepcopy(game)
+        # Selection phase
+        node = select_best_child(node)
+        current_state[node.move[0]][node.move[1]] = player
+        print(f"move= {node.move}")
+        player = "O" if player == "X" else "X"
+        # Simulation and backprop
+        simulate_random_playout(node, current_state, player)
+    # Select the best move based on the most visited child
+    best_child = max(root.children.values(), key=lambda child: child.visits)
+    return best_child.move
+
+def make_children(player, node):
+    print(f"Moves after node {node.move} with player {player}:")
+    if node.next_small_grid is None:
+        # If the next grid wasn't playable, find the first available small grid
+        for i in range(9):
+            if check_small_grid_win(node.board[i]) is None:
+                node.next_small_grid = i
+                break
+
+    if node.next_small_grid is not None:
+        for i in range(9):
+            if node.board[node.next_small_grid][i] is None:
+                board_copy = [row[:] for row in node.board]
+                board_copy[node.next_small_grid][i] = player
+                next_small = i if check_small_grid_win(board_copy[i]) is None else None
+                move = [node.next_small_grid, i]
+                child = Node(board_copy, node.player, node, next_small, move)
+                print(f"row, col = {node.next_small_grid}, {i}, next small = {next_small}")
+                node.children[node.next_small_grid, i] = child
+    else:
+        # If all small grids are won, allow moves in any available position
+        for i in range(9):
+            for j in range(9):
+                if node.board[i][j] is None:
+                    board_copy = [row[:] for row in node.board]
+                    board_copy[i][j] = player
+                    move = [i, j]
+                    child = Node(board_copy, node.player, node, None, move)
+                    node.children[i,j]=child
+
+
+# Function to backpropagate the result of a playout
+def backpropagate(node, winner):
+    while node is not None:
+        node.visits += 1
+        if winner == node.player:
+            node.wins += 1
+        node = node.parent
+
+
+# Function to simulate a random playout from a node with both players making random moves
+def simulate_random_playout(node, gameState, player):
+    print("Simulation started")
+    current_state = deepcopy(gameState)
+    child = node
+    make_children(player, child)
+    while game_won(current_state) is None:
+        maxmove = -2
+        move = None
+        # Choosing best child
+        for moves in child.children.keys():
+            if LargeGridweights[moves[0]] + SmallGridWeights[moves[1]] > maxmove:
+                move = moves
+                maxmove = LargeGridweights[moves[0]] + SmallGridWeights[moves[1]]
+        child = child.children.get(move)
+        #move, child = random.choice(list(child.children.items()))  # Access move and child tuple
+        print(move)
+        current_state[move[0]][move[1]] = player
+        player = "O" if player == "X" else "X"  # Alternate players
+        printGameState(current_state)
+        if game_won(current_state) is not None:
+            break
+        make_children(player, child)
+    winner = game_won(current_state)
+    print(f"Winner: {winner}")
+    backpropagate(child, winner)
+    print("game finished")
+    return winner
+
+
+# Function to select the best child node using UCB1 formula
+def select_best_child(node):
+    best_child = None
+    best_score = -float('inf')
+    for child in node.children.values():
+        if child.visits == 0:
+            return child
+        score = child.wins / child.visits + math.sqrt(2 * math.log(node.visits) / child.visits)
+        if score > best_score:
+            best_child = child
+            best_score = score
+    return best_child
+
+
+
+
+def evaluation(player, board):
+=======
 
 def evaluation(player, board, next_large_grid):
+  
     score = 0
 
     # Prioritize sending the opponent to an already won grid
@@ -681,7 +880,8 @@ human1 = "X"
 human2 = "O"
 
 def get_ai_move(player, depth, next_large_grid):
-    _, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
+    #_, move = minimax(player, large_grid_state, depth, float("-inf"), float("inf"), next_large_grid)
+    move = mcts(player, game_state, 100, next_large_grid)
     if move is None:
         # If no valid move is found, search for any available move
         for i in range(9):
