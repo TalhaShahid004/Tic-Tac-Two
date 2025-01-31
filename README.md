@@ -1,47 +1,96 @@
-# Ultimate Tic Tac Toe
 
-Ultimate Tic Tac Toe is an advanced variation of the classic Tic Tac Toe game. It introduces a new level of strategy and complexity by incorporating a nested grid structure. The game is played on a 3x3 grid of 3x3 grids, resulting in a total of 81 cells.
+<h1 align="center">Tic-Tac-Two</h1>
 
-## How to Play
+<p align="center">
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/Python-3.12-blue.svg" alt="Python Version">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+  </a>
+</p>
 
-1. The game is played by two players, X and O, who take turns marking their symbol in an empty cell.
-2. The objective is to win three grids in a row, either horizontally, vertically, or diagonally.
-3. Each move is played in a small 3x3 grid, and the position of the move within the small grid determines the large grid where the opponent must play their next move.
-4. If a player is sent to a large grid that has already been won, they can choose to play in any other available large grid.
-5. The game continues until a player wins three grids in a row or all the grids are filled, resulting in a draw.
+<p align="center">
+  This repository contains an implementation of the Ultimate Tic Tac Toe game, a more complex version of the classic Tic Tac Toe, along with AI opponents using Minimax with Alpha-Beta pruning and Monte Carlo Tree Search (MCTS).
+</p>
 
-## Features
 
-- Graphical user interface using the `customtkinter` library
-- Interactive gameplay with mouse clicks
-- Visual indicators for the current turn and large grid availability
-- Winning condition detection for both small and large grids
-- Display of the winning player
 
-## Future Enhancements
+## Project Description
+This project provides an implementation of the Ultimate Tic Tac Toe game. It features a graphical user interface (GUI) built with the `customtkinter` library, allowing interactive gameplay. The game involves a 3x3 grid of 3x3 grids, offering a challenging twist to the traditional Tic Tac Toe. Additionally, the project includes AI opponents that use Minimax with Alpha-Beta pruning and Monte Carlo Tree Search (MCTS) algorithms to play against.
 
-The current implementation of Ultimate Tic Tac Toe provides a basic gameplay experience. However, there are several exciting enhancements planned for the future, including:
+## Main Features
+- Interactive GUI using `customtkinter`.
+- Mouse-based gameplay.
+- Highlighted playable large grids.
+- Visual indicators for game state.
+- Winning condition detection for both small and large grids.
+- AI opponents using Minimax with Alpha-Beta Pruning and MCTS algorithms.
 
-### AI Functionality with Minimax and Alpha-Beta Pruning
+## Installation and Setup
+To set up the project on your local machine, follow these steps:
 
-One of the key goals is to introduce AI functionality to the game, allowing players to compete against a computer opponent. The AI will utilize the minimax algorithm along with alpha-beta pruning to make intelligent moves.
+1.  Clone the repository to your local machine:
+    ```bash
+    git clone https://github.com/TalhaShahid004/Tic-Tac-Two.git
+    ```
+2.  Navigate to the project directory:
+    ```bash
+    cd Tic-Tac-Two
+    ```
+3. Ensure you have Python 3.12 installed. Create and activate a virtual environment:
 
-- Minimax is a recursive algorithm commonly used in two-player games with perfect information. It aims to minimize the potential loss for a worst-case scenario while maximizing the potential gain.
-- Alpha-beta pruning is an optimization technique that reduces the number of nodes evaluated in the minimax search tree. It eliminates branches that are guaranteed to be worse than the current best move, significantly improving the efficiency of the algorithm.
+    ```bash
+    python -m venv venv
+    source venv/bin/activate # On Windows use `venv\Scripts\activate`
+    ```
 
-By implementing minimax with alpha-beta pruning, the AI opponent will be able to analyze the game state, consider various possible moves, and choose the most optimal move to maximize its chances of winning.
+4. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Additional Features
+## Running the Project
+To run the game, execute the following command:
+```bash
+python Mini_vs_Monte_Autonomous.py
+```
+or
+```bash
+python Mini_vs_Monte_UTTT.py
+```
+or
+```bash
+python Minimax_alphabeta_UTTT.py
+```
+or
+```bash
+python MonteCarlo_UTTT.py
+```
+or
+```bash
+python mini_vs_random.py
+```
+or
+```bash
+python monte_vs_random.py
+```
+These will launch different versions of the game.
 
-In addition to the AI functionality, other planned enhancements include:
+## Dependencies and Tools
+-   **Python**: Version 3.12 or higher.
+-   **customtkinter**: For building the GUI.
+-   **random**: For randomizing moves.
+-   **math**: For mathematical operations in MCTS algorithm.
+-   **copy**: For deep copy of data structures
 
-- Difficulty levels for the AI opponent, allowing players to choose between easy, medium, and hard difficulties.
-- A game menu system for easy navigation and game customization.
-- Sound effects and visual animations to enhance the gaming experience.
-- Game statistics and leaderboard to keep track of player performances.
-- Online multiplayer functionality, enabling players to compete against each other remotely.
+## Contribution Guide
+Contributions are welcome! To contribute to this project, please follow these steps:
+1.  Fork the repository.
+2.  Create a new branch for your feature or fix.
+3.  Make your changes and commit them with clear messages.
+4.  Push your changes to your forked repository.
+5.  Submit a pull request with a detailed description of your changes.
 
-## Contributing
-
-Contributions to the Ultimate Tic Tac Toe project are welcome! If you have any ideas, suggestions, or bug reports, please open an issue on the GitHub repository. If you'd like to contribute code, you can fork the repository, make your changes, and submit a pull request.
-
+## License
+This project is licensed under the MIT License. 
